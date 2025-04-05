@@ -418,8 +418,16 @@
                 display: none;
             }
                         
-            .nav .container {
-                justify-content: left !important;
+            .nav .container,
+            .nav .container.nav-container {
+                justify-content: flex-start !important;
+                padding-left: 15px !important;
+                text-align: left !important;
+            }
+
+            .nav .logo {
+                margin-right: auto !important;
+                margin-left: 0 !important;
             }
         }
     </style>
