@@ -416,21 +416,14 @@
             
             /* Add these new styles */
             .nav .container {
-                position: relative;
+                display: flex !important;
+                justify-content: flex-start !important; /* Start from left */
                 padding: 0 15px;
             }
             
-            .logo {
-                position: absolute;
-                left: 15px;
-            }
-            
             .social-links {
-                position: relative;
-                margin: 0 auto;
-                left: 0;
-                right: 0;
-                width: fit-content;
+                margin-left: auto; /* Push to center-right */
+                margin-right: 0;
             }
         }
     </style>
