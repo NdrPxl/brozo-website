@@ -393,7 +393,6 @@
             z-index: -1;
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 40px;
@@ -414,9 +413,19 @@
             .nav-links {
                 display: none;
             }
-            .container {
-                display: flex !important;
-                justify-content: space-between !important;
+            
+            /* Add these new styles */
+            .nav-container {
+                padding: 0 15px;
+                width: 100%;
+            }
+            
+            .social-links {
+                margin-left: auto; /* This pushes the social icons to the right */
+            }
+            
+            .logo {
+                margin-right: auto; /* This ensures the logo stays left */
             }
         }
     </style>
@@ -427,7 +436,7 @@
 <body>
     <!-- Navigation -->
     <nav class="nav">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="container nav-container" style="display: flex; justify-content: space-between; align-items: center;">
             <a href="#" class="logo">BROZO</a>
             
             <div class="nav-links" style="margin-left: 50px; margin-right: 50px;">
