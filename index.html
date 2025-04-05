@@ -415,17 +415,22 @@
             }
             
             /* Add these new styles */
-            .nav-container {
+            .nav .container {
+                position: relative;
                 padding: 0 15px;
-                width: calc(100% - 100px); /* Ensure the width accounts for padding */
-            }
-            
-            .social-links {
-                margin-left: auto; /* This pushes the social icons to the right */
             }
             
             .logo {
-                margin-right: auto; /* This ensures the logo stays left */
+                position: absolute;
+                left: 15px;
+            }
+            
+            .social-links {
+                position: relative;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+                width: fit-content;
             }
         }
     </style>
