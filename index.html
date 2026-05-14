@@ -105,12 +105,23 @@
         }
 
         .logo {
-            font-family: var(--font-body);
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: var(--brozo-bone);
+            display: inline-flex;
+            align-items: center;
             text-decoration: none;
+            line-height: 0;
+        }
+
+        .logo img {
+            height: 48px;
+            width: auto;
+            display: block;
+            transition: filter 0.25s ease, transform 0.25s ease;
+            filter: drop-shadow(0 0 8px rgba(196, 255, 61, 0.35));
+        }
+
+        .logo:hover img {
+            filter: drop-shadow(0 0 14px rgba(196, 255, 61, 0.7));
+            transform: scale(1.04);
         }
 
         .logo span {
@@ -691,7 +702,9 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="container nav-container">
-            <a href="#" class="logo">BRO<span>ZO</span></a>
+            <a href="#" class="logo" aria-label="Brozo">
+                <img src="images/logo_neon_small.png" alt="Brozo">
+            </a>
 
             <div class="nav-links">
                 <a href="#migration" class="nav-link">Migration</a>
