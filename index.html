@@ -492,7 +492,7 @@
 
         .gallery-image { width: 100%; height: auto; display: block; }
 
-        /* Legacy CTA — used for OpenSea and Discord links in dark sections */
+        /* Legacy CTA — used for marketplace and Discord links in dark sections */
         .cta-legacy {
             display: inline-block;
             padding: 14px 28px;
@@ -552,6 +552,20 @@
         }
 
         .links-link:hover { color: var(--brozo-white); }
+
+        /* Primary (highlighted) link — e.g. Ebisu's Bay */
+        .links-link.primary {
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        .links-link.primary .tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: var(--brozo-ash);
+            margin-left: 8px;
+        }
 
         /* ============== FOOTER ============== */
         .footer {
@@ -796,7 +810,7 @@
             </script>
 
             <div style="text-align: center; margin-top: 50px;">
-                <a href="https://opensea.io/collection/brozo" class="cta-legacy" target="_blank">View on OpenSea</a>
+                <a href="https://app.ebisusbay.com/collection/cronos/brozo" class="cta-legacy" target="_blank">View on Ebisu's Bay</a>
             </div>
         </div>
     </section>
@@ -809,10 +823,12 @@
             <div class="links-grid">
                 <div>
                     <div class="links-category">
-                        <h3 class="category-title">Brozo</h3>
+                        <h3 class="category-title">Marketplaces</h3>
                         <ul class="links-list">
-                            <li class="links-item"><a href="https://opensea.io/collection/brozo" class="links-link" target="_blank">OpenSea</a></li>
-                            <li class="links-item"><a href="https://x.com/BrozoCro" class="links-link" target="_blank">Twitter</a></li>
+                            <li class="links-item"><a href="https://app.ebisusbay.com/collection/cronos/brozo" class="links-link primary" target="_blank">Ebisu's Bay<span class="tag">// PRIMARY</span></a></li>
+                            <li class="links-item"><a href="https://crovia.app/collections/0x57325ba06567b2da4b013a2593443fbb662d4686" class="links-link" target="_blank">Crovia</a></li>
+                            <li class="links-item"><a href="https://www.croarmy.site/marketplace/collection/0x57325ba06567b2da4b013a2593443fbb662d4686" class="links-link" target="_blank">Tyros</a></li>
+                            <li class="links-item"><a href="https://gravemarket.io/collection/brozo" class="links-link" target="_blank">GraveMarket</a></li>
                         </ul>
                     </div>
 
@@ -828,6 +844,7 @@
                     <div class="links-category">
                         <h3 class="category-title">Community</h3>
                         <ul class="links-list">
+                            <li class="links-item"><a href="https://x.com/BrozoCro" class="links-link" target="_blank">X.com</a></li>
                             <li class="links-item"><a href="https://discord.gg/KF4pNxpwRv" class="links-link" target="_blank">Discord</a></li>
                         </ul>
                     </div>
