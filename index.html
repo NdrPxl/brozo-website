@@ -35,9 +35,6 @@
             --brozo-brown: #614E41;
             --brozo-oil: #1B2E3C;
             --brozo-gray: #D6D6D6;
-            --fuzzy-purple: #8A6FD6;
-            --fuzzy-light: #B8A5E8;
-            --fuzzy-dark: #4A3A80;
 
             /* Type */
             --font-display: 'Bebas Neue', sans-serif;
@@ -53,15 +50,14 @@
             background: linear-gradient(
                 180deg,
                 var(--brozo-black) 0%,
-                var(--brozo-black) 75%,
-                #3a2a55 92%,
-                var(--fuzzy-purple) 100%
+                var(--brozo-black) 88%,
+                var(--brozo-ink) 100%
             );
             color: var(--brozo-bone);
             overflow-x: hidden;
         }
 
-        /* ============== FADE FROM NEON BLACK (TOP) → FUZZY PURPLE (BOTTOM) ============== */
+        /* ============== ALL-DARK PAGE WITH NEON ACCENTS ============== */
         /* Subtle grain texture across the whole page */
         .grain {
             position: fixed;
@@ -518,73 +514,9 @@
             box-shadow: 0 0 24px var(--brozo-neon-soft);
         }
 
-        /* ============== FUZZY FEINS (deepest legacy zone) ============== */
-        .fuzzy-feins {
-            padding: 100px 0;
-            background: linear-gradient(to bottom, transparent, var(--fuzzy-purple));
-        }
-
-        .fuzzy-feins .section-title,
-        .fuzzy-feins .section-subtitle,
-        .fuzzy-feins .section-eyebrow { color: var(--brozo-white); }
-
-        .partnership {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: center;
-            margin-top: 60px;
-        }
-
-        .partnership-content h3 {
-            font-family: var(--font-display);
-            font-size: 32px;
-            letter-spacing: 1px;
-            color: var(--brozo-white);
-            margin-bottom: 20px;
-        }
-
-        .partnership-content p {
-            font-size: 16px;
-            line-height: 1.7;
-            color: var(--brozo-white);
-            margin-bottom: 18px;
-            opacity: 0.95;
-        }
-
-        .partnership-image {
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .partnership-image img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .cta-fuzzy {
-            display: inline-block;
-            padding: 14px 28px;
-            background-color: var(--fuzzy-dark);
-            color: var(--brozo-white);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            border-radius: 4px;
-            margin-right: 12px;
-            margin-top: 10px;
-            transition: background-color 0.3s ease;
-        }
-
-        .cta-fuzzy:hover { background-color: #5a4a9a; }
-
         /* ============== LINKS SECTION ============== */
         .links {
-            background-color: var(--fuzzy-purple);
+            background-color: var(--brozo-ink);
             color: var(--brozo-white);
             padding: 80px 0;
         }
@@ -613,7 +545,7 @@
         .links-item { margin-bottom: 10px; }
 
         .links-link {
-            color: var(--fuzzy-light);
+            color: var(--brozo-neon);
             text-decoration: none;
             font-size: 15px;
             transition: color 0.3s ease;
@@ -623,7 +555,7 @@
 
         /* ============== FOOTER ============== */
         .footer {
-            background-color: var(--fuzzy-dark);
+            background-color: var(--brozo-black);
             color: var(--brozo-white);
             padding: 50px 0;
             text-align: center;
@@ -749,8 +681,8 @@
                     </p>
 
                     <div class="cta-row">
-                        <a href="#migration" class="cta-button disabled" id="mint-btn">
-                            <i class="fas fa-bolt"></i> MINT MIGRATION // COMING SOON
+                        <a href="https://discord.gg/KF4pNxpwRv" class="cta-button" id="mint-btn" target="_blank">
+                            <i class="fas fa-bolt"></i> MINT MIGRATION // LIVE ON DISCORD
                         </a>
                         <a href="https://discord.gg/KF4pNxpwRv" class="cta-button ghost" target="_blank">
                             <i class="fab fa-discord"></i> JOIN DISCORD
@@ -869,35 +801,6 @@
         </div>
     </section>
 
-    <!-- FUZZY FEINS -->
-    <section class="fuzzy-feins" id="fuzzy-feins">
-        <div class="container">
-            <div class="section-eyebrow reveal">// PARTNERSHIP</div>
-            <h2 class="section-title reveal">FUZZY FEINS</h2>
-            <p class="section-subtitle reveal">
-                Brozo and Fuzzy Feins have merged into one community, and we're carrying that spirit forward.
-            </p>
-
-            <div class="partnership">
-                <div class="partnership-content">
-                    <h3>6,969 FUZZY FEINS</h3>
-                    <p>
-                        Fuzzy Feins inhabits the Polygon blockchain alongside Brozo. Together, we built a space where community members can connect, chill, and vibe in Web3.
-                    </p>
-                    <p>
-                        This partnership combines Brozo's vision with Fuzzy Feins' development chops, creating a stronger ecosystem for all holders across both chains.
-                    </p>
-                    <a href="https://opensea.io/collection/ffeins" class="cta-fuzzy" target="_blank">OpenSea</a>
-                    <a href="https://discord.gg/KF4pNxpwRv" class="cta-fuzzy" target="_blank">Join Discord</a>
-                </div>
-
-                <div class="partnership-image">
-                    <img src="images/FuzzyFeins.png" alt="Fuzzy Feins Collection">
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- LINKS -->
     <section class="links">
         <div class="container">
@@ -917,16 +820,6 @@
                         <h3 class="category-title">Brozo Ordinals</h3>
                         <ul class="links-list">
                             <li class="links-item"><a href="https://www.satflow.com/ordinals/brozo-ordinals" class="links-link" target="_blank">Satflow</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="links-category">
-                        <h3 class="category-title">Fuzzy Feins</h3>
-                        <ul class="links-list">
-                            <li class="links-item"><a href="https://opensea.io/collection/ffeins" class="links-link" target="_blank">OpenSea</a></li>
-                            <li class="links-item"><a href="https://x.com/FuzzyFeins" class="links-link" target="_blank">Twitter</a></li>
                         </ul>
                     </div>
                 </div>
