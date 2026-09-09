@@ -188,7 +188,7 @@ footer b{color:var(--dim)}
       <div class="face tails">🦋<small>TAILS</small></div>
     </div></div>
     <div class="result-big" id="resultBig"></div>
-    <div class="status-line" id="statusLine">Pick a side. Double or nothing.</div>
+    <div class="status-line" id="statusLine">Pick a side. Let it fly.</div>
 
     <div class="side-row">
       <button class="side-btn sel" id="sideH" onclick="pickSide(true)"><span>👑</span>HEADS</button>
@@ -202,7 +202,7 @@ footer b{color:var(--dim)}
     </div>
 
     <div class="payout-line">Win pays <b id="payoutVal">—</b> <span style="color:var(--faint)">(1.93× · 3.5% fee)</span></div>
-    <button class="flip-btn" id="flipBtn" onclick="doFlip()">FLIP</button>
+    <button class="flip-btn" id="flipBtn" onclick="doFlip()">LET IT FLY</button>
     <div class="limits">min <b id="minBetVal">—</b> · max <b id="maxBetVal">—</b> · bankroll <b id="bankVal">—</b> MONARCH</div>
   </div>
 
@@ -241,7 +241,7 @@ footer b{color:var(--dim)}
   <div class="ocard">
     <div class="big" id="oBig"></div>
     <div class="sub" id="oSub"></div>
-    <button class="btn btn-gold" style="font-size:16px;padding:13px 34px" onclick="closeOverlay()">FLIP AGAIN</button>
+    <button class="btn btn-gold" style="font-size:16px;padding:13px 34px" onclick="closeOverlay()">FLY AGAIN</button>
   </div>
 </div>
 <div class="toasts" id="toasts"></div>
@@ -500,7 +500,7 @@ async function doFlip(){
 
     // 3. spin while the target block is mined
     coin().className='coin spinning';
-    statusLine('Coin is in the air… <b>'+(STATE.side?'HEADS':'TAILS')+'</b> for <b>'+fmt(fromU(amount))+'</b>');
+    statusLine('Your coin takes flight… <b>'+(STATE.side?'HEADS':'TAILS')+'</b> for <b>'+fmt(fromU(amount))+'</b>');
     await waitForBlock(target + 1n);
 
     // 4. settle — keeper does it gas-free for the player when available
@@ -516,7 +516,7 @@ async function doFlip(){
     STATE.pendingMine = null; savePending();
   }catch(e){
     coin().className='coin';
-    statusLine('Pick a side. Double or nothing.');
+    statusLine('Pick a side. Let it fly.');
     if(STATE.pendingMine) statusLine('⚠ Your flip is placed but unsettled — <b>reload</b> to settle it.');
     toast('Flip failed', e.message||'', true);
   }
@@ -584,13 +584,13 @@ async function settleBet(id){
 function showResult(won, amt){
   document.getElementById('resultBig').className='result-big '+(won?'win':'lose');
   document.getElementById('resultBig').textContent = won?'WINNER!':'REKT';
-  statusLine(won?`You won <b>${fmt(fromU(amt))} MONARCH</b> 👑`:`You lost ${fmt(fromU(amt))} MONARCH. Run it back?`);
+  statusLine(won?`It flew home 🦋 <b>+${fmt(fromU(amt))} MONARCH</b> 👑`:`It flew away with ${fmt(fromU(amt))} MONARCH. Run it back?`);
   const o=document.getElementById('overlay');
   document.getElementById('oBig').className='big '+(won?'win':'lose');
   document.getElementById('oBig').textContent = won?'👑 WINNER 👑':'💀 REKT 💀';
   document.getElementById('oSub').innerHTML = won
-    ? `Double or nothing hits — <b>+${fmt(fromU(amt))} MONARCH</b> to your bag.`
-    : `The house keeps <b>${fmt(fromU(amt))} MONARCH</b>. Fortune favors the bold.`;
+    ? `It flew home — <b>+${fmt(fromU(amt))} MONARCH</b> to your bag.`
+    : `It flew away with <b>${fmt(fromU(amt))} MONARCH</b>. Fortune favors the bold.`;
   o.classList.add('show');
   if(won) confetti();
 }
@@ -685,7 +685,7 @@ function render(){
   // flip button
   const btn=document.getElementById('flipBtn');
   btn.disabled = STATE.busy;
-  btn.textContent = STATE.busy ? 'FLIPPING…' : (STATE.wallet ? 'FLIP' : 'CONNECT TO FLIP');
+  btn.textContent = STATE.busy ? 'IN FLIGHT…' : (STATE.wallet ? 'LET IT FLY' : 'CONNECT TO FLY');
   // stats
   document.getElementById('stFlips').textContent = STATE.stats.flips.toString();
   document.getElementById('stVol').textContent = fmt(fromU(STATE.stats.vol));
