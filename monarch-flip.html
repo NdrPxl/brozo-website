@@ -549,14 +549,24 @@ async function lookupOutcome(id){
   return decUint(logs[0].data,0)===1n;
 }
 /// settle bet `id`: keeper first (one-click), wallet signature as fallback;
-/// returns won:boolean
+/// returns won:boolean. The keeper sweep (or any other visitor) may settle
+/// the bet before our wallet tx lands — every path below resolves that race
+/// to the real outcome instead of an error.
 async function settleBet(id){
   const viaKeeper = await keeperSettle(id);
   if(viaKeeper!==null) return viaKeeper;
-  const rcpt = await sendTx(CONFIG.FLIP, SEL.settle + encUint(id));
-  const slog = rcpt.logs.find(l=>l.address.toLowerCase()===CONFIG.FLIP.toLowerCase() && l.topics[0]===TOPIC_SETTLED);
-  if(!slog) throw new Error('settle log missing');
-  return decUint(slog.data,0)===1n;
+  // already settled by someone else? just read the outcome
+  if(decUint(await ethCall(CONFIG.FLIP, SEL.bets + encUint(id)), 4)===1n) return await lookupOutcome(id);
+  try{
+    const rcpt = await sendTx(CONFIG.FLIP, SEL.settle + encUint(id));
+    const slog = rcpt.logs.find(l=>l.address.toLowerCase()===CONFIG.FLIP.toLowerCase() && l.topics[0]===TOPIC_SETTLED);
+    if(!slog) throw new Error('settle log missing');
+    return decUint(slog.data,0)===1n;
+  }catch(e){
+    // tx reverted (AlreadySettled) or was rejected after the sweep won the
+    // race — if an outcome exists on-chain, that's the answer
+    try{ return await lookupOutcome(id); }catch(_){ throw e; }
+  }
 }
 
 function showResult(won, amt){
