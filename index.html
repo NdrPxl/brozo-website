@@ -344,12 +344,7 @@
         .bracket.tl { top: 100px; left: 30px; border-right: none; border-bottom: none; }
         .bracket.tr { top: 100px; right: 30px; border-left: none; border-bottom: none; }
 
-        /* ============== MIGRATION DETAIL SECTION ============== */
-        .migration-detail {
-            padding: 120px 0;
-            position: relative;
-        }
-
+        /* ============== SECTION HEADINGS ============== */
         .section-eyebrow {
             font-family: var(--font-mono);
             font-size: 12px;
@@ -376,48 +371,6 @@
             text-align: center;
             max-width: 720px;
             margin: 0 auto 60px;
-            color: var(--brozo-ash);
-        }
-
-        .migration-steps {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            margin-top: 60px;
-        }
-
-        .step {
-            background: var(--brozo-ink);
-            border: 1px solid rgba(0, 239, 255, 0.15);
-            padding: 36px 28px;
-            position: relative;
-            transition: border-color 0.3s ease, transform 0.3s ease;
-        }
-
-        .step:hover {
-            border-color: var(--brozo-neon);
-            transform: translateY(-4px);
-        }
-
-        .step-number {
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 2px;
-            color: var(--brozo-neon);
-            margin-bottom: 16px;
-        }
-
-        .step-title {
-            font-family: var(--font-display);
-            font-size: 24px;
-            letter-spacing: 1px;
-            color: var(--brozo-bone);
-            margin-bottom: 12px;
-        }
-
-        .step-text {
-            font-size: 15px;
-            line-height: 1.6;
             color: var(--brozo-ash);
         }
 
@@ -463,6 +416,89 @@
             font-size: 15px;
             line-height: 1.6;
             color: var(--brozo-ash);
+        }
+
+        /* ============== UTILITY / HOLDER BENEFITS ============== */
+        .utility-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .perk {
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 32px 28px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .perk:hover {
+            border-color: rgba(0, 239, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .perk-icon {
+            font-size: 28px;
+            margin-bottom: 18px;
+            color: var(--brozo-neon);
+        }
+
+        .perk-title {
+            font-family: var(--font-display);
+            font-size: 22px;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            color: var(--brozo-bone);
+        }
+
+        .perk-list {
+            list-style: none;
+        }
+
+        .perk-list li {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--brozo-ash);
+            padding-left: 22px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .perk-list li::before {
+            content: '+';
+            position: absolute;
+            left: 0;
+            font-family: var(--font-mono);
+            color: var(--brozo-neon);
+        }
+
+        .perk-list a {
+            color: var(--brozo-neon);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .perk-list a:hover {
+            border-bottom-color: var(--brozo-neon);
+        }
+
+        .perk-list code {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--brozo-neon);
+            background: rgba(0, 239, 255, 0.08);
+            padding: 1px 6px;
+        }
+
+        .utility-tagline {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: clamp(22px, 3vw, 32px);
+            letter-spacing: 2px;
+            color: var(--brozo-bone);
+            margin: 64px 0 28px;
         }
 
         /* ============== COLLECTION ============== */
@@ -530,7 +566,7 @@
             margin-top: 40px;
         }
 
-        .links-category { }
+        .links-category { text-align: center; }
 
         .category-title {
             font-family: var(--font-display);
@@ -591,7 +627,7 @@
 
         /* ============== RESPONSIVE ============== */
         @media (max-width: 900px) {
-            .migration-steps {
+            .utility-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -639,9 +675,9 @@
             </a>
 
             <div class="nav-links">
-                <a href="#migration" class="nav-link">Migration</a>
                 <a href="#about" class="nav-link">About</a>
                 <a href="#collection" class="nav-link">Collection</a>
+                <a href="#utility" class="nav-link">Utility</a>
             </div>
 
             <div class="social-links">
@@ -677,7 +713,7 @@
                     <p class="hero-tagline">NOW ON <strong>CRONOS</strong></p>
 
                     <p class="hero-copy">
-                        New chain. New chapter. The migration is complete — Brozo has left Polygon behind and is now live on <em>Cronos</em>. Same token IDs, sharper edges. Next up: a supplemental mint of unmigrated Brozos. Date TBD.
+                        New chain. New chapter. The migration is complete — Brozo has left Polygon behind and is now live on <em>Cronos</em>. Same token IDs, sharper edges. Next up: a supplemental mint of new Brozos. Date TBD.
                     </p>
 
                     <div class="cta-row">
@@ -688,37 +724,6 @@
                             <i class="fab fa-discord"></i> JOIN DISCORD
                         </a>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- MIGRATION DETAILS -->
-    <section class="section migration-detail" id="migration">
-        <div class="container">
-            <div class="section-eyebrow reveal">// THE MIGRATION</div>
-            <h2 class="section-title reveal">THE PAST IS BEHIND US</h2>
-            <p class="section-subtitle reveal">
-                Brozo has moved home. The Polygon chapter taught us who we are — now we're building forward on Cronos with backed tokens, on-chain provenance, and a new chapter for every holder who made the move.
-            </p>
-
-            <div class="migration-steps">
-                <div class="step reveal">
-                    <div class="step-number">// STEP 01 — COMPLETE</div>
-                    <h3 class="step-title">Migration Complete</h3>
-                    <p class="step-text">Polygon Brozos made the move to Cronos. Same token IDs, full provenance preserved on-chain. Polygon-specific traits were retired — everything else came along.</p>
-                </div>
-
-                <div class="step reveal">
-                    <div class="step-number">// STEP 02 — LIVE</div>
-                    <h3 class="step-title">Stake In Discord. Earn.</h3>
-                    <p class="step-text">Now that we're on Cronos, stake your Brozo through the Discord bot to earn rewards. Same system you know, backed by the new chain.</p>
-                </div>
-
-                <div class="step reveal">
-                    <div class="step-number">// STEP 03 — DATE TBD</div>
-                    <h3 class="step-title">Supplemental Mint</h3>
-                    <p class="step-text">The migration window has closed. A subset of unmigrated Brozos will be available to mint on Cronos — date TBD. New chapter, new chances.</p>
                 </div>
             </div>
         </div>
@@ -801,39 +806,84 @@
         </div>
     </section>
 
+    <!-- UTILITY / HOLDER BENEFITS -->
+    <section class="section" id="utility">
+        <div class="container">
+            <div class="section-eyebrow reveal">// UTILITY</div>
+            <h2 class="section-title reveal">ART. GAMES. <span style="color: var(--brozo-neon);">UTILITY.</span></h2>
+            <p class="section-subtitle reveal">
+                Brozo is a hand-drawn NFT community built for people who want more than a static collectible.
+            </p>
+
+            <div class="utility-grid">
+                <div class="perk reveal">
+                    <div class="perk-icon"><i class="fas fa-coins"></i></div>
+                    <h3 class="perk-title">STAKING</h3>
+                    <ul class="perk-list">
+                        <li>Soft stake your Brozos directly in Discord for <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a></li>
+                        <li>Daily <code>/work</code> for Rarity-Weighted Earning</li>
+                        <li>Sales royalties are compounded in a <a href="https://wolfswap.app/stakes" target="_blank">Wolfswap vault</a> and feed into rewards</li>
+                    </ul>
+                </div>
+
+                <div class="perk reveal">
+                    <div class="perk-icon"><i class="fas fa-gamepad"></i></div>
+                    <h3 class="perk-title">GAMES</h3>
+                    <ul class="perk-list">
+                        <li><code>/toss</code> to grow your <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a> balance beyond staking</li>
+                        <li>Watch our Bitcoin Miner (rewards go to NFT and <a href="https://www.satflow.com/ordinals/brozo-ordinals" target="_blank">Ordinal</a> holders)</li>
+                        <li>Join our gamers in <a href="https://wolfswap.app/wolfage" target="_blank">Wolfage</a>, <a href="https://aideabot.vip/" target="_blank">AIdea</a>, and more&hellip;</li>
+                    </ul>
+                </div>
+
+                <div class="perk reveal">
+                    <div class="perk-icon"><i class="fas fa-ticket-alt"></i></div>
+                    <h3 class="perk-title">RAIDS &amp; RAFFLES</h3>
+                    <ul class="perk-list">
+                        <li>Fulfill Quests to earn points for NFT and Token raffles</li>
+                        <li>Powered by <a href="https://flipsuite.xyz/" target="_blank">Flipsuite</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="utility-tagline reveal">JOIN THE COMMUNITY. STAKE IT. EARN WITH IT.</p>
+            <div style="text-align: center;">
+                <a href="https://discord.gg/KF4pNxpwRv" class="cta-button ghost" target="_blank">
+                    <i class="fab fa-discord"></i> JOIN DISCORD
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- LINKS -->
     <section class="links">
         <div class="container">
             <h2 class="section-title">OFFICIAL LINKS</h2>
 
             <div class="links-grid">
-                <div>
-                    <div class="links-category">
-                        <h3 class="category-title">Marketplaces</h3>
-                        <ul class="links-list">
-                            <li class="links-item"><a href="https://app.ebisusbay.com/collection/cronos/brozo" class="links-link" target="_blank">Ebisu's Bay</a></li>
-                            <li class="links-item"><a href="https://crovia.app/collections/0x57325ba06567b2da4b013a2593443fbb662d4686" class="links-link" target="_blank">Crovia</a></li>
-                            <li class="links-item"><a href="https://www.croarmy.site/marketplace/collection/0x57325ba06567b2da4b013a2593443fbb662d4686" class="links-link" target="_blank">Tyros</a></li>
-                            <li class="links-item"><a href="https://gravemarket.io/collection/brozo" class="links-link" target="_blank">GraveMarket</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="links-category">
-                        <h3 class="category-title">Brozo Ordinals</h3>
-                        <ul class="links-list">
-                            <li class="links-item"><a href="https://www.satflow.com/ordinals/brozo-ordinals" class="links-link" target="_blank">Satflow</a></li>
-                        </ul>
-                    </div>
+                <div class="links-category">
+                    <h3 class="category-title">Marketplaces</h3>
+                    <ul class="links-list">
+                        <li class="links-item"><a href="https://app.ebisusbay.com/collection/cronos/brozo" class="links-link" target="_blank">Ebisu's Bay</a></li>
+                        <li class="links-item"><a href="https://crovia.app/collections/0x57325ba06567b2da4b013a2593443fbb662d4686" class="links-link" target="_blank">Crovia</a></li>
+                        <li class="links-item"><a href="https://www.croarmy.site/marketplace/collection/0x57325ba06567b2da4b013a2593443fbb662d4686" class="links-link" target="_blank">Tyros</a></li>
+                        <li class="links-item"><a href="https://gravemarket.io/collection/brozo" class="links-link" target="_blank">GraveMarket</a></li>
+                    </ul>
                 </div>
 
-                <div>
-                    <div class="links-category">
-                        <h3 class="category-title">Community</h3>
-                        <ul class="links-list">
-                            <li class="links-item"><a href="https://x.com/BrozoCro" class="links-link" target="_blank">X.com</a></li>
-                            <li class="links-item"><a href="https://discord.gg/KF4pNxpwRv" class="links-link" target="_blank">Discord</a></li>
-                        </ul>
-                    </div>
+                <div class="links-category">
+                    <h3 class="category-title">Brozo Ordinals</h3>
+                    <ul class="links-list">
+                        <li class="links-item"><a href="https://www.satflow.com/ordinals/brozo-ordinals" class="links-link" target="_blank">Satflow</a></li>
+                    </ul>
+                </div>
+
+                <div class="links-category">
+                    <h3 class="category-title">Community</h3>
+                    <ul class="links-list">
+                        <li class="links-item"><a href="https://x.com/BrozoCro" class="links-link" target="_blank">X.com</a></li>
+                        <li class="links-item"><a href="https://discord.gg/KF4pNxpwRv" class="links-link" target="_blank">Discord</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
