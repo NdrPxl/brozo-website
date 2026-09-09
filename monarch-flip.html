@@ -202,7 +202,7 @@ footer b{color:var(--dim)}
     </div>
 
     <div class="payout-line">Win pays <b id="payoutVal">—</b> <span style="color:var(--faint)">(1.93× · 3.5% fee)</span></div>
-    <button class="flip-btn" id="flipBtn" onclick="doFlip()">DOUBLE OR NOTHING</button>
+    <button class="flip-btn" id="flipBtn" onclick="doFlip()">FLIP</button>
     <div class="limits">min <b id="minBetVal">—</b> · max <b id="maxBetVal">—</b> · bankroll <b id="bankVal">—</b> MONARCH</div>
   </div>
 
@@ -685,7 +685,7 @@ function render(){
   // flip button
   const btn=document.getElementById('flipBtn');
   btn.disabled = STATE.busy;
-  btn.textContent = STATE.busy ? 'FLIPPING…' : (STATE.wallet ? 'DOUBLE OR NOTHING' : 'CONNECT TO FLIP');
+  btn.textContent = STATE.busy ? 'FLIPPING…' : (STATE.wallet ? 'FLIP' : 'CONNECT TO FLIP');
   // stats
   document.getElementById('stFlips').textContent = STATE.stats.flips.toString();
   document.getElementById('stVol').textContent = fmt(fromU(STATE.stats.vol));
