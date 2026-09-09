@@ -323,7 +323,7 @@ const STATE = {
   balance:0n, minBet:0n, maxBet:0n, bankroll:0n,
   stats:{flips:0n, vol:0n, paid:0n},
   side:true,            // true = heads
-  amtSel:0n, amtCustom:'',
+  amtSel:10_000n*10n**18n, amtCustom:'', // default preset so the button works on a fresh load
   busy:false,
   flips:[],             // merged feed: {id, player, amount, guessHeads, status:'pending'|'win'|'lose'|'expired', payout, tx}
   pendingMine:null,     // {id, target} bet in flight for this user
@@ -461,10 +461,12 @@ async function doFlip(){
   if(!STATE.wallet){ connectWallet(); return; }
   if(STATE.wrongChain){ toast('Wrong network','Switch to Arc Testnet first', true); return; }
   const amount = currentAmount();
-  if(!amount || amount<=0n){ toast('Pick an amount','Choose a preset or type a wager', true); return; }
-  if(amount < STATE.minBet){ toast('Bet too small',`Minimum is ${fmt(fromU(STATE.minBet))} MONARCH`, true); return; }
-  if(amount > STATE.maxBet){ toast('Bet too large',`Max right now is ${fmt(fromU(STATE.maxBet))} MONARCH`, true); return; }
-  if(amount > STATE.balance){ toast('Not enough MONARCH','Grab some on the launchpad first', true); return; }
+  const block = !amount || amount<=0n ? ['Pick an amount','Choose a preset or type a wager']
+    : amount < STATE.minBet ? ['Bet too small',`Minimum is ${fmt(fromU(STATE.minBet))} MONARCH`]
+    : amount > STATE.maxBet ? ['Bet too large',`Max right now is ${fmt(fromU(STATE.maxBet))} MONARCH`]
+    : amount > STATE.balance ? ['Not enough MONARCH',`You have ${fmt(fromU(STATE.balance))} — pick a smaller bet or hit the 🚰 faucet`]
+    : null;
+  if(block){ toast(block[0], block[1], true); statusLine('⚠ '+block[0]+' — '+block[1]); return; }
 
   STATE.busy = true; render();
   document.getElementById('resultBig').textContent='';
