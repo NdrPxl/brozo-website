@@ -412,30 +412,37 @@ async function claimFaucet(){
   }catch(e){ toast('Claim failed', /CoolingDown|revert/.test(e.message||'')?'Faucet cooldown — try again later':(e.message||''), true); }
   await refreshWallet(); render();
 }
+const FEED = { map: new Map(), from: null }; // incremental log cursor
 async function refreshFeed(){
   const latest = BigInt(await rpc('eth_blockNumber',[]));
-  const from = latest > BigInt(CONFIG.LOG_LOOKBACK) ? latest - BigInt(CONFIG.LOG_LOOKBACK) : 0n;
-  const fromBlock = '0x' + (from > BigInt(CONFIG.START_BLOCK) ? from : BigInt(CONFIG.START_BLOCK)).toString(16);
-  const logs = await rpc('eth_getLogs', [{address: CONFIG.FLIP, fromBlock, toBlock:'latest',
+  let from = FEED.from;
+  if(from===null){
+    const lb = latest > BigInt(CONFIG.LOG_LOOKBACK) ? latest - BigInt(CONFIG.LOG_LOOKBACK) : 0n;
+    from = lb > BigInt(CONFIG.START_BLOCK) ? lb : BigInt(CONFIG.START_BLOCK);
+  }
+  if(from > latest) return;
+  // only fetch blocks we haven't scanned yet — keeps the RPC load tiny
+  const logs = await rpc('eth_getLogs', [{address: CONFIG.FLIP,
+    fromBlock:'0x'+from.toString(16), toBlock:'0x'+latest.toString(16),
     topics:[[TOPIC_FLIPPED, TOPIC_SETTLED, TOPIC_EXPIRED]]}]);
-  const map = new Map();
   for(const l of logs){
     const id = decUint(l.topics[1]).toString();
     if(l.topics[0]===TOPIC_FLIPPED){
-      map.set(id, { id, player: decAddr(l.topics[2],0), amount: decUint(l.data,0),
+      FEED.map.set(id, { id, player: decAddr(l.topics[2],0), amount: decUint(l.data,0),
         guessHeads: decUint(l.data,1)===1n, target: decUint(l.data,2),
         status:'pending', payout:0n, tx:l.transactionHash });
     } else {
-      const e = map.get(id) || {id, player: decAddr(l.topics[2],0), amount:0n, guessHeads:true, payout:0n};
+      const e = FEED.map.get(id) || {id, player: decAddr(l.topics[2],0), amount:0n, guessHeads:true, payout:0n};
       if(l.topics[0]===TOPIC_SETTLED){
         e.status = decUint(l.data,0)===1n ? 'win' : 'lose';
         e.payout = decUint(l.data,1);
       } else e.status = 'expired';
       e.tx = e.tx || l.transactionHash;
-      map.set(id, e);
+      FEED.map.set(id, e);
     }
   }
-  STATE.flips = [...map.values()].sort((a,b)=>Number(b.id)-Number(a.id)).slice(0,40);
+  FEED.from = latest + 1n;
+  STATE.flips = [...FEED.map.values()].sort((a,b)=>Number(b.id)-Number(a.id)).slice(0,40);
 }
 
 /* ---------------- amounts --------------------------------------------- */
@@ -461,10 +468,13 @@ async function doFlip(){
   if(!STATE.wallet){ connectWallet(); return; }
   if(STATE.wrongChain){ toast('Wrong network','Switch to Arc Testnet first', true); return; }
   const amount = currentAmount();
+  // limits/balance can be 0 while the RPC is still answering (or rate
+  // limiting) — only pre-check what we actually know; the contract enforces
+  // the real limits either way
   const block = !amount || amount<=0n ? ['Pick an amount','Choose a preset or type a wager']
-    : amount < STATE.minBet ? ['Bet too small',`Minimum is ${fmt(fromU(STATE.minBet))} MONARCH`]
-    : amount > STATE.maxBet ? ['Bet too large',`Max right now is ${fmt(fromU(STATE.maxBet))} MONARCH`]
-    : amount > STATE.balance ? ['Not enough MONARCH',`You have ${fmt(fromU(STATE.balance))} — pick a smaller bet or hit the 🚰 faucet`]
+    : (STATE.minBet>0n && amount < STATE.minBet) ? ['Bet too small',`Minimum is ${fmt(fromU(STATE.minBet))} MONARCH`]
+    : (STATE.maxBet>0n && amount > STATE.maxBet) ? ['Bet too large',`Max right now is ${fmt(fromU(STATE.maxBet))} MONARCH`]
+    : (STATE.balance>0n && amount > STATE.balance) ? ['Not enough MONARCH',`You have ${fmt(fromU(STATE.balance))} — pick a smaller bet or hit the 🚰 faucet`]
     : null;
   if(block){ toast(block[0], block[1], true); statusLine('⚠ '+block[0]+' — '+block[1]); return; }
 
@@ -724,9 +734,16 @@ async function boot(){
   }
   render();
   refreshRescue();
+  // 20s poll, and refreshes alternate so each tick is at most a few RPC
+  // calls — the shared testnet RPC rate-limits chatty pages
+  let tick = 0;
   setInterval(async ()=>{ if(STATE.busy) return;
-    try{ await Promise.all([refreshGame(), refreshFeed(), refreshWallet()]); render(); await refreshRescue(); }catch(_){}
-  }, 12000);
+    try{
+      if(tick++ % 2 === 0){ await Promise.all([refreshGame(), refreshFeed()]); }
+      else { await refreshWallet(); await refreshRescue(); }
+      render();
+    }catch(_){}
+  }, 20000);
 }
 boot();
 </script>
