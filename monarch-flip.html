@@ -173,6 +173,7 @@ footer b{color:var(--dim)}
   <div class="brand"><div class="coin-ico">👑</div>Monarch&nbsp;<b>FLIP</b></div>
   <div class="spacer"></div>
   <div class="pill" id="balPill" style="display:none">🦋 <b id="balVal">—</b>&nbsp;MONARCH</div>
+  <button class="btn btn-ghost" id="faucetBtn" style="display:none" onclick="claimFaucet()"></button>
   <button class="btn btn-ghost" id="netBtn" style="display:none" onclick="addArcNetwork()">Switch to Arc</button>
   <button class="btn btn-gold" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
 </header>
@@ -230,8 +231,8 @@ footer b{color:var(--dim)}
   automatically, but a flip nobody settles in time is forfeited. Testnet game, unaudited, tokens have no value.<br>
   Game <a id="lnkGame" target="_blank" rel="noopener">contract ↗</a> ·
   MONARCH <a id="lnkTok" target="_blank" rel="noopener">token ↗</a> ·
-  faucet gas at <a href="https://faucet.circle.com" target="_blank" rel="noopener">faucet.circle.com</a> (Arc Testnet) ·
-  buy MONARCH on the <a href="/monarch-token">Monarch token page</a>
+  gas at <a href="https://faucet.circle.com" target="_blank" rel="noopener">faucet.circle.com</a> (Arc Testnet) ·
+  free play money from the 🚰 faucet button up top (1M MONARCH / 6h)
 </footer>
 </div>
 
@@ -258,6 +259,7 @@ const CONFIG = {
   EXPLORER: 'https://testnet.arcscan.app',
   TOKEN: '0x08c2740E280cFbd913cD89C1617DcDc6422a8a0c', // MonarchToken
   FLIP:  '0x882c3d04C519E9Dce5c950336E91608B5F1e5b76', // CoinFlip (Arc testnet)
+  FAUCET:'0xc2D1B31924A0Ea4cA4C81F64497F57bCB8Ed8BaA', // MonarchFaucet (1M/claim, 6h cooldown)
   START_BLOCK: 61271195, // CoinFlip deploy block
   LOG_LOOKBACK: 200000,
   FEE_BPS: 350n,
@@ -273,6 +275,7 @@ const SEL = {
   totalFlips:'0x09247dc5', totalVolume:'0x5f81a57c', totalPaidOut:'0x1357e1dc',
   nextBetId:'0x9aca2792', bets:'0x22af00fa',
   balanceOf:'0x70a08231', allowance:'0xdd62ed3e', approve:'0x095ea7b3',
+  claim:'0x4e71d92d', timeToClaim:'0x63cf2b9f', claimAmount:'0x830953ab',
 };
 const TOPIC_FLIPPED = '0x0ac6eece54f25f1051fd0d0d7c31f4f00ad72b002b21d76e5b6f6d3aa6489036';
 const TOPIC_SETTLED = '0x34ba3a7f550fd7774614220cbd58d3d858f38e35678e3cab4e323b9d7138329c';
@@ -392,7 +395,22 @@ async function refreshGame(){
 }
 async function refreshWallet(){
   if(!STATE.wallet) return;
-  STATE.balance = await callU(CONFIG.TOKEN, SEL.balanceOf + encAddr(STATE.wallet.address));
+  const [bal, wait, amt] = await Promise.all([
+    callU(CONFIG.TOKEN, SEL.balanceOf + encAddr(STATE.wallet.address)),
+    callU(CONFIG.FAUCET, SEL.timeToClaim + encAddr(STATE.wallet.address)),
+    callU(CONFIG.FAUCET, SEL.claimAmount),
+  ]);
+  STATE.balance = bal; STATE.faucetWait = Number(wait); STATE.faucetAmount = amt;
+}
+async function claimFaucet(){
+  if(!STATE.wallet || STATE.busy) return;
+  if(STATE.wrongChain){ toast('Wrong network','Switch to Arc Testnet first', true); return; }
+  try{
+    toast('Claiming test MONARCH','Confirm in your wallet…');
+    await sendTx(CONFIG.FAUCET, SEL.claim);
+    toast('Faucet paid out 🚰', fmt(fromU(STATE.faucetAmount||0n))+' MONARCH added to your bag');
+  }catch(e){ toast('Claim failed', /CoolingDown|revert/.test(e.message||'')?'Faucet cooldown — try again later':(e.message||''), true); }
+  await refreshWallet(); render();
 }
 async function refreshFeed(){
   const latest = BigInt(await rpc('eth_blockNumber',[]));
@@ -619,6 +637,14 @@ function render(){
   document.getElementById('connectBtn').textContent = STATE.wallet ? shortAddr(STATE.wallet.address) : 'Connect Wallet';
   document.getElementById('balPill').style.display = STATE.wallet ? 'flex' : 'none';
   document.getElementById('balVal').textContent = fmt(fromU(STATE.balance));
+  const fb=document.getElementById('faucetBtn');
+  fb.style.display = STATE.wallet ? 'block' : 'none';
+  if(STATE.wallet){
+    const w = STATE.faucetWait||0;
+    fb.disabled = w>0;
+    fb.textContent = w>0 ? `🚰 ${Math.floor(w/3600)}h ${Math.floor(w%3600/60)}m` :
+      `🚰 Get ${fmt(fromU(STATE.faucetAmount||0n))} MONARCH`;
+  }
   document.getElementById('netBtn').style.display = (STATE.wallet && STATE.wrongChain) ? 'block' : 'none';
   document.getElementById('chainWarn').style.display = (STATE.wallet && STATE.wrongChain) ? 'block' : 'none';
   // sides
