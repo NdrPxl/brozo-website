@@ -87,6 +87,20 @@
   .lede { font-size: 1.12rem; color: var(--ink-soft); margin: 0; max-width: 34em; }
   .lede strong { color: var(--ink); font-weight: 600; }
 
+  .jump { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .jump a {
+    font: 600 0.8rem/1 "Sora", "Segoe UI", system-ui, sans-serif;
+    color: var(--accent);
+    text-decoration: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+  }
+  .jump a:hover { border-color: var(--accent); }
+  html { scroll-behavior: smooth; }
+  section[id] { scroll-margin-top: 24px; }
+
   section { margin-top: 44px; }
   .section-note { color: var(--ink-soft); margin: 0 0 20px; max-width: 40em; }
   .section-note a { color: var(--accent); }
@@ -215,6 +229,11 @@
     <h1>Discord Spaces Announcements</h1>
     <p class="lede">Going live on an X&nbsp;Space? One command posts your join link to
       <strong>every participating Cronos Discord at once</strong> — no copy-pasting server to server.</p>
+    <nav class="jump" aria-label="Sections">
+      <a href="#posting">Posting</a>
+      <a href="#adding">Adding to your Discord</a>
+      <a href="#security">Security</a>
+    </nav>
   </header>
 
   <section>
@@ -242,7 +261,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="posting">
     <h2>Posting with /space</h2>
     <ol class="steps">
       <li>
@@ -267,7 +286,7 @@
     </ol>
   </section>
 
-  <section>
+  <section id="adding">
     <h2>Adding the announcements to your Discord</h2>
     <p class="section-note">Your community can receive Spaces announcements without installing
       Zobot or any other bot — it works through a webhook you create and control.</p>
@@ -298,7 +317,7 @@
       never in a public channel.</p>
   </section>
 
-  <section>
+  <section id="security">
     <h2>Security</h2>
     <ul class="security">
       <li><strong>The webhook URL is a credential.</strong> Anybody holding it can post to that channel, so keep it secure.</li>
