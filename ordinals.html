@@ -28,6 +28,7 @@
             --brozo-bone: #F4F4F4;
             --brozo-ash: #9A9A9A;
             --btc: #F7931A;
+            --rare: #FFD84D;
 
             --font-display: 'Bebas Neue', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
@@ -167,6 +168,7 @@
         .traits .t-type { font-family: var(--font-mono); font-size: 11px; color: var(--brozo-ash); letter-spacing: 1px; text-transform: uppercase; width: 34%; }
         .traits .t-value { font-weight: 600; word-break: break-word; }
         .traits .t-pct { text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--brozo-neon); white-space: nowrap; }
+        .traits tr.rare .t-value, .traits tr.rare .t-pct { color: var(--rare); }
         .note { font-size: 12px; color: var(--brozo-ash); margin-top: 14px; line-height: 1.6; }
 
         footer { border-top: 1px solid var(--brozo-line); padding: 28px 0; color: var(--brozo-ash); font-size: 13px; text-align: center; }
@@ -279,6 +281,7 @@
         // Live listings come from Zobot (it holds the Satflow key). The page works without them.
         const LISTINGS_URL = 'https://api.brozo.co/api/ordinals/listings';
         const SATS = 1e8;
+        const RARE_SHARE = 0.02; // traits held by under 2% of the collection get a yellow ★
 
         const $ = (id) => document.getElementById(id);
         const state = { data: null, tokens: [], listings: new Map(), filters: {}, open: null };
@@ -385,10 +388,12 @@
                 const value = t.traits[type] || 'None';
                 if (value === 'None' && (type === 'Career' || type === 'District')) return '';
                 const c = counts[type][value] || 0;
-                return `<tr><td class="t-type">${esc(type)}</td><td class="t-value">${esc(value)}</td>` +
+                const rare = c / total < RARE_SHARE;
+                return `<tr${rare ? ' class="rare"' : ''}><td class="t-type">${esc(type)}</td>` +
+                    `<td class="t-value">${rare ? '★ ' : ''}${esc(value)}</td>` +
                     `<td class="t-pct">${c} · ${(100 * c / total).toFixed(1)}%</td></tr>`;
             }).join('');
-            $('m-note').textContent = 'Shown at 600px. Full-res opens the 2400×2400 original on IPFS.';
+            $('m-note').textContent = '★ Rare trait: held by under 2% of Brozo Ordinals. Shown at 600px; Full-res opens the 2400×2400 original on IPFS.';
             $('modal').classList.add('open');
             document.body.classList.add('modal-open');
             if (location.hash !== `#${t.n}`) history.replaceState(null, '', `#${t.n}`);
