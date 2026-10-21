@@ -132,7 +132,7 @@
         .card img { width: 100%; height: auto; aspect-ratio: 1; display: block; background: var(--brozo-ink); }
         .card-body { padding: 10px 12px 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
         .card-name { font-family: var(--font-display); font-size: 22px; letter-spacing: 1px; }
-        .card-rank { font-family: var(--font-mono); font-size: 11px; color: var(--brozo-ash); white-space: nowrap; }
+        .card-rank { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--brozo-bone); white-space: nowrap; }
         .price-badge {
             position: absolute; top: 8px; left: 8px; background: var(--btc); color: var(--brozo-black);
             font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 4px 8px; letter-spacing: 0.5px;
@@ -184,6 +184,7 @@
             .result-count { margin-left: 0; width: 100%; }
             .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .card-name { font-size: 18px; }
+            .card-rank { font-size: 12px; }
             .modal { padding: 0; }
             .modal-box { grid-template-columns: 1fr; max-height: 100vh; height: 100%; border: none; }
             .modal-name { font-size: 36px; }
@@ -223,7 +224,6 @@
             </div>
             <div class="header-links">
                 <a class="cta-button btc" href="https://www.satflow.com/ordinals/brozo-ordinals" target="_blank" rel="noopener"><i class="fab fa-bitcoin"></i> Trade on Satflow</a>
-                <a class="cta-button ghost" id="ipfs-link" href="#" target="_blank" rel="noopener"><i class="fas fa-cube"></i> Metadata on IPFS</a>
             </div>
         </div>
     </header>
@@ -233,9 +233,9 @@
             <div class="controls-row">
                 <input class="input" id="search" type="search" inputmode="numeric" placeholder="# number" aria-label="Search by number">
                 <select class="select" id="sort" aria-label="Sort">
+                    <option value="featured" selected>For sale first (cheapest)</option>
                     <option value="number">Number</option>
                     <option value="rarity">Rarest first</option>
-                    <option value="price">Price: low to high</option>
                 </select>
                 <label class="toggle"><input type="checkbox" id="for-sale"> For sale</label>
                 <button class="cta-button ghost filters-btn" id="filters-btn" type="button" aria-expanded="false"><i class="fas fa-sliders-h"></i> Traits</button>
@@ -290,7 +290,6 @@
             const res = await fetch('ordinals/collection.json');
             state.data = await res.json();
             state.tokens = state.data.tokens;
-            $('ipfs-link').href = ipfs(`${state.data.ipfs.metadata}/collection.json`);
             buildFilters();
             render();
             openFromHash();
@@ -343,8 +342,9 @@
             });
             const sort = $('sort').value;
             const price = (t) => state.listings.has(t.id) ? state.listings.get(t.id) : Infinity;
-            if (sort === 'rarity') list = [...list].sort((a, b) => a.rank - b.rank || a.n - b.n);
-            else if (sort === 'price') list = [...list].sort((a, b) => price(a) - price(b) || a.n - b.n);
+            // default: listed pieces first, cheapest first, then the rest by number
+            if (sort === 'featured') list = [...list].sort((a, b) => price(a) - price(b) || a.n - b.n);
+            else if (sort === 'rarity') list = [...list].sort((a, b) => a.rank - b.rank || a.n - b.n);
             return list;
         }
 
@@ -377,8 +377,7 @@
             $('m-actions').innerHTML = `
                 <a class="cta-button btc" href="${satflowUrl(t)}" target="_blank" rel="noopener"><i class="fab fa-bitcoin"></i> ${price ? 'Buy on Satflow' : 'View on Satflow'}</a>
                 <a class="cta-button" href="${ipfs(`${state.data.ipfs.images}/${t.n}.png`)}" target="_blank" rel="noopener"><i class="fas fa-expand"></i> Full-res</a>
-                <a class="cta-button ghost" href="https://ordinals.com/inscription/${t.id}" target="_blank" rel="noopener"><i class="fas fa-link"></i> On-chain</a>
-                <a class="cta-button ghost" href="${ipfs(`${state.data.ipfs.metadata}/${t.n}.json`)}" target="_blank" rel="noopener"><i class="fas fa-code"></i> Metadata</a>`;
+                <a class="cta-button ghost" href="https://ordinals.com/inscription/${t.id}" target="_blank" rel="noopener"><i class="fas fa-link"></i> On-chain</a>`;
             $('m-traits').innerHTML = state.data.traitTypes.map((type) => {
                 const value = t.traits[type] || 'None';
                 if (value === 'None' && (type === 'Career' || type === 'District')) return '';
