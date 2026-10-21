@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brozo Ordinals | 404 on Bitcoin</title>
+    <meta name="description" content="All 404 Brozo Ordinals: full-resolution art, traits and rarity. Buy on Satflow.">
+
+    <meta property="og:title" content="Brozo Ordinals">
+    <meta property="og:description" content="404 Brozo Ordinals on Bitcoin. Full-res art, traits, rarity.">
+    <meta property="og:image" content="ordinals/img/34.webp">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="images/brozo.ico?v=3" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            --brozo-black: #0A0A0A;
+            --brozo-ink: #141414;
+            --brozo-card: #111316;
+            --brozo-line: #24272c;
+            --brozo-neon: #00EFFF;
+            --brozo-neon-soft: rgba(0, 239, 255, 0.15);
+            --brozo-bone: #F4F4F4;
+            --brozo-ash: #9A9A9A;
+            --btc: #F7931A;
+
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); }
+        html { scroll-behavior: smooth; }
+        body { background: var(--brozo-black); color: var(--brozo-bone); overflow-x: hidden; }
+        body.modal-open { overflow: hidden; }
+
+        .grain {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* ============== NAV ============== */
+        .nav {
+            position: sticky; top: 0; z-index: 50; padding: 16px 0;
+            background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 239, 255, 0.12);
+        }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .logo { display: inline-flex; line-height: 0; }
+        .logo img { height: 40px; filter: drop-shadow(0 0 8px rgba(0, 239, 255, 0.35)); }
+        .nav-links { display: flex; gap: 28px; }
+        .nav-link {
+            color: var(--brozo-bone); text-decoration: none; font-weight: 500; font-size: 14px;
+            letter-spacing: 1.5px; text-transform: uppercase; transition: color 0.25s ease;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--brozo-neon); }
+        .social-links { display: flex; gap: 18px; }
+        .social-icon { color: var(--brozo-bone); font-size: 20px; transition: color 0.25s ease; }
+        .social-icon:hover { color: var(--brozo-neon); }
+
+        /* ============== HEADER ============== */
+        .header { padding: 56px 0 28px; }
+        .eyebrow {
+            font-family: var(--font-mono); font-size: 12px; letter-spacing: 3px; color: var(--brozo-neon); margin-bottom: 12px;
+        }
+        .title { font-family: var(--font-display); font-size: clamp(48px, 8vw, 92px); line-height: 0.95; letter-spacing: 1px; }
+        .title .accent { color: var(--btc); font-family: var(--font-display); }
+        .subtitle { color: var(--brozo-ash); font-size: 16px; line-height: 1.7; max-width: 680px; margin-top: 16px; }
+
+        .stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+        .stat {
+            border: 1px solid var(--brozo-line); background: var(--brozo-card); padding: 12px 18px; min-width: 130px;
+        }
+        .stat-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.5px; color: var(--brozo-ash); text-transform: uppercase; }
+        .stat-value { font-family: var(--font-display); font-size: 28px; letter-spacing: 1px; margin-top: 4px; }
+        .stat-value.btc { color: var(--btc); }
+
+        .header-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+        .cta-button {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 13px 22px;
+            font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+            text-decoration: none; border: 1px solid var(--brozo-neon); background: transparent; color: var(--brozo-neon);
+            cursor: pointer; transition: all 0.25s ease;
+        }
+        .cta-button:hover { background: var(--brozo-neon); color: var(--brozo-black); }
+        .cta-button.btc { border-color: var(--btc); background: var(--btc); color: var(--brozo-black); }
+        .cta-button.btc:hover { background: transparent; color: var(--btc); }
+        .cta-button.ghost { border-color: var(--brozo-line); color: var(--brozo-bone); }
+        .cta-button.ghost:hover { border-color: var(--brozo-neon); background: transparent; color: var(--brozo-neon); }
+
+        /* ============== CONTROLS ============== */
+        .controls {
+            position: sticky; top: 73px; z-index: 40; background: rgba(10, 10, 10, 0.92); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--brozo-line); padding: 14px 0;
+        }
+        .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .input, .select {
+            background: var(--brozo-card); color: var(--brozo-bone); border: 1px solid var(--brozo-line);
+            padding: 10px 12px; font-family: var(--font-mono); font-size: 13px; outline: none; min-height: 42px;
+        }
+        .input:focus, .select:focus { border-color: var(--brozo-neon); }
+        .input { width: 140px; }
+        .toggle {
+            display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px;
+            letter-spacing: 1px; color: var(--brozo-ash); cursor: pointer; text-transform: uppercase; min-height: 42px;
+        }
+        .toggle input { accent-color: var(--btc); width: 16px; height: 16px; }
+        .filters-btn { display: none; }
+        .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .filters .select { max-width: 200px; }
+        .result-count { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--brozo-ash); }
+        .clear-link {
+            background: none; border: none; color: var(--brozo-neon); font-family: var(--font-mono);
+            font-size: 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; min-height: 42px;
+        }
+
+        /* ============== GRID ============== */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 24px 0 64px;
+        }
+        .card {
+            background: var(--brozo-card); border: 1px solid var(--brozo-line); cursor: pointer; text-align: left;
+            color: inherit; padding: 0; transition: border-color 0.2s ease, transform 0.2s ease; position: relative;
+        }
+        .card:hover, .card:focus-visible { border-color: var(--brozo-neon); transform: translateY(-2px); outline: none; }
+        .card img { width: 100%; aspect-ratio: 1; display: block; background: var(--brozo-ink); }
+        .card-body { padding: 10px 12px 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .card-name { font-family: var(--font-display); font-size: 22px; letter-spacing: 1px; }
+        .card-rank { font-family: var(--font-mono); font-size: 11px; color: var(--brozo-ash); white-space: nowrap; }
+        .price-badge {
+            position: absolute; top: 8px; left: 8px; background: var(--btc); color: var(--brozo-black);
+            font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 4px 8px; letter-spacing: 0.5px;
+        }
+        .empty { grid-column: 1 / -1; text-align: center; color: var(--brozo-ash); padding: 60px 0; font-family: var(--font-mono); }
+
+        /* ============== MODAL ============== */
+        .modal {
+            position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.82); display: none;
+            align-items: center; justify-content: center; padding: 24px;
+        }
+        .modal.open { display: flex; }
+        .modal-box {
+            background: var(--brozo-black); border: 1px solid var(--brozo-neon); max-width: 980px; width: 100%;
+            max-height: calc(100vh - 48px); overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; position: relative;
+        }
+        .modal-img { width: 100%; aspect-ratio: 1; display: block; background: var(--brozo-ink); position: sticky; top: 0; }
+        .modal-info { padding: 26px 26px 24px; }
+        .modal-close {
+            position: absolute; top: 10px; right: 10px; z-index: 2; width: 40px; height: 40px; border: 1px solid var(--brozo-line);
+            background: rgba(10, 10, 10, 0.8); color: var(--brozo-bone); font-size: 18px; cursor: pointer;
+        }
+        .modal-close:hover { border-color: var(--brozo-neon); color: var(--brozo-neon); }
+        .modal-name { font-family: var(--font-display); font-size: 44px; letter-spacing: 1px; line-height: 1; }
+        .modal-meta { font-family: var(--font-mono); font-size: 12px; color: var(--brozo-ash); margin-top: 8px; line-height: 1.8; }
+        .modal-meta strong { color: var(--brozo-bone); font-weight: 500; }
+        .modal-price { font-family: var(--font-display); font-size: 30px; color: var(--btc); margin-top: 14px; letter-spacing: 1px; }
+        .modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        .traits { width: 100%; border-collapse: collapse; margin-top: 22px; }
+        .traits td { padding: 9px 0; border-top: 1px solid var(--brozo-line); font-size: 13px; vertical-align: top; }
+        .traits .t-type { font-family: var(--font-mono); font-size: 11px; color: var(--brozo-ash); letter-spacing: 1px; text-transform: uppercase; width: 34%; }
+        .traits .t-value { font-weight: 600; word-break: break-word; }
+        .traits .t-pct { text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--brozo-neon); white-space: nowrap; }
+        .note { font-size: 12px; color: var(--brozo-ash); margin-top: 14px; line-height: 1.6; }
+
+        footer { border-top: 1px solid var(--brozo-line); padding: 28px 0; color: var(--brozo-ash); font-size: 13px; text-align: center; }
+        footer a { color: var(--brozo-neon); text-decoration: none; }
+
+        @media (max-width: 760px) {
+            .nav-links { gap: 16px; }
+            .nav-link { font-size: 12px; }
+            .social-links { display: none; }
+            .controls { top: 65px; }
+            .filters-btn { display: inline-flex; }
+            .filters { display: none; }
+            .filters.show { display: flex; }
+            .filters .select { max-width: none; flex: 1 1 45%; }
+            .input { width: 110px; }
+            .result-count { margin-left: 0; width: 100%; }
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .card-name { font-size: 18px; }
+            .modal { padding: 0; }
+            .modal-box { grid-template-columns: 1fr; max-height: 100vh; height: 100%; border: none; }
+            .modal-name { font-size: 36px; }
+            .modal-info { padding: 20px 16px 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grain"></div>
+
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="index.html" class="logo" aria-label="Brozo home"><img src="images/logo_blue_small.png" alt="Brozo"></a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="ordinals.html" class="nav-link active">Ordinals</a>
+            </div>
+            <div class="social-links">
+                <a href="https://discord.gg/KF4pNxpwRv" class="social-icon" target="_blank" aria-label="Discord"><i class="fab fa-discord"></i></a>
+                <a href="https://x.com/BrozoCro" class="social-icon" target="_blank" aria-label="X"><i class="fab fa-twitter"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="header">
+        <div class="container">
+            <div class="eyebrow">// BROZO ORDINALS</div>
+            <h1 class="title">404 BROZOS.<br><span class="accent">ON BITCOIN.</span></h1>
+            <p class="subtitle">
+                The inscribed long lost brothers of the Brozo collection, with traits that never made it into the original set.
+                Every piece here is shown from the full-resolution art. Tap one for its traits and rarity, or to buy it on Satflow.
+            </p>
+            <div class="stats">
+                <div class="stat"><div class="stat-label">Supply</div><div class="stat-value">404</div></div>
+                <div class="stat"><div class="stat-label">Floor</div><div class="stat-value btc" id="stat-floor">—</div></div>
+                <div class="stat"><div class="stat-label">Listed</div><div class="stat-value" id="stat-listed">—</div></div>
+            </div>
+            <div class="header-links">
+                <a class="cta-button btc" href="https://www.satflow.com/ordinals/brozo-ordinals" target="_blank" rel="noopener"><i class="fab fa-bitcoin"></i> Trade on Satflow</a>
+                <a class="cta-button ghost" id="ipfs-link" href="#" target="_blank" rel="noopener"><i class="fas fa-cube"></i> Metadata on IPFS</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="controls">
+        <div class="container">
+            <div class="controls-row">
+                <input class="input" id="search" type="search" inputmode="numeric" placeholder="# number" aria-label="Search by number">
+                <select class="select" id="sort" aria-label="Sort">
+                    <option value="number">Number</option>
+                    <option value="rarity">Rarest first</option>
+                    <option value="price">Price: low to high</option>
+                </select>
+                <label class="toggle"><input type="checkbox" id="for-sale"> For sale</label>
+                <button class="cta-button ghost filters-btn" id="filters-btn" type="button" aria-expanded="false"><i class="fas fa-sliders-h"></i> Traits</button>
+                <button class="clear-link" id="clear" type="button">Clear</button>
+                <span class="result-count" id="count"></span>
+            </div>
+            <div class="filters" id="filters"></div>
+        </div>
+    </section>
+
+    <main class="container">
+        <div class="grid" id="grid"></div>
+    </main>
+
+    <footer>
+        <div class="container">
+            Full-resolution art and metadata are pinned on IPFS. Rarity uses the OpenRarity method (missing traits count as "None").
+            <br><a href="index.html">brozo.co</a>
+        </div>
+    </footer>
+
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-name">
+        <div class="modal-box">
+            <button class="modal-close" id="modal-close" type="button" aria-label="Close"><i class="fas fa-times"></i></button>
+            <img class="modal-img" id="m-img" alt="">
+            <div class="modal-info">
+                <div class="modal-name" id="m-name"></div>
+                <div class="modal-meta" id="m-meta"></div>
+                <div class="modal-price" id="m-price"></div>
+                <div class="modal-actions" id="m-actions"></div>
+                <table class="traits" id="m-traits"></table>
+                <p class="note" id="m-note"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        // Live listings come from Zobot (it holds the Satflow key). The page works without them.
+        const LISTINGS_URL = 'https://api.brozo.co/api/ordinals/listings';
+        const SATS = 1e8;
+
+        const $ = (id) => document.getElementById(id);
+        const state = { data: null, tokens: [], listings: new Map(), filters: {}, open: null };
+
+        const btc = (sats) => `${(sats / SATS).toFixed(8).replace(/\.?0+$/, '')} BTC`;
+        const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const ipfs = (path) => `${state.data.ipfs.gateway}${path}`;
+        const satflowUrl = (t) => `https://www.satflow.com/ordinal/${t.id}`;
+
+        async function load() {
+            const res = await fetch('ordinals/collection.json');
+            state.data = await res.json();
+            state.tokens = state.data.tokens;
+            $('ipfs-link').href = ipfs(`${state.data.ipfs.metadata}/collection.json`);
+            buildFilters();
+            render();
+            openFromHash();
+            loadListings();
+        }
+
+        async function loadListings() {
+            try {
+                const res = await fetch(LISTINGS_URL, { cache: 'no-store' });
+                if (!res.ok) throw new Error(res.status);
+                const body = await res.json();
+                state.listings = new Map((body.listings || []).map((l) => [l.inscriptionId, l.price]));
+            } catch (e) {
+                state.listings = new Map(); // offline: no badges, everything else works
+            }
+            const prices = [...state.listings.values()];
+            $('stat-floor').textContent = prices.length ? btc(Math.min(...prices)) : '—';
+            $('stat-listed').textContent = state.listings.size ? String(state.listings.size) : '—';
+            render();
+            if (state.open) showModal(state.open);
+        }
+
+        function buildFilters() {
+            const box = $('filters');
+            for (const type of state.data.traitTypes) {
+                const counts = state.data.traitCounts[type];
+                const sel = document.createElement('select');
+                sel.className = 'select';
+                sel.setAttribute('aria-label', type);
+                sel.innerHTML = `<option value="">${esc(type)}: any</option>` + Object.keys(counts).sort()
+                    .map((v) => `<option value="${esc(v)}">${esc(v)} (${counts[v]})</option>`).join('');
+                sel.addEventListener('change', () => {
+                    if (sel.value) state.filters[type] = sel.value; else delete state.filters[type];
+                    render();
+                });
+                box.appendChild(sel);
+            }
+        }
+
+        function visible() {
+            const q = $('search').value.replace(/[^0-9]/g, '');
+            const forSale = $('for-sale').checked;
+            let list = state.tokens.filter((t) => {
+                if (q && !String(t.n).startsWith(q)) return false;
+                if (forSale && !state.listings.has(t.id)) return false;
+                for (const [type, value] of Object.entries(state.filters)) {
+                    if ((t.traits[type] || 'None') !== value) return false;
+                }
+                return true;
+            });
+            const sort = $('sort').value;
+            const price = (t) => state.listings.has(t.id) ? state.listings.get(t.id) : Infinity;
+            if (sort === 'rarity') list = [...list].sort((a, b) => a.rank - b.rank || a.n - b.n);
+            else if (sort === 'price') list = [...list].sort((a, b) => price(a) - price(b) || a.n - b.n);
+            return list;
+        }
+
+        function render() {
+            const list = visible();
+            $('count').textContent = `${list.length} of ${state.tokens.length}`;
+            $('grid').innerHTML = list.length ? list.map((t) => {
+                const p = state.listings.get(t.id);
+                return `<button class="card" type="button" data-n="${t.n}" aria-label="Brozo Ordinals #${t.n}">
+                    ${p ? `<span class="price-badge">${btc(p)}</span>` : ''}
+                    <img src="ordinals/img/${t.n}.webp" alt="Brozo Ordinals #${t.n}" loading="lazy" width="600" height="600">
+                    <span class="card-body"><span class="card-name">#${t.n}</span><span class="card-rank">Rank ${t.rank}</span></span>
+                </button>`;
+            }).join('') : '<div class="empty">No Brozos match these filters.</div>';
+        }
+
+        function showModal(n) {
+            const t = state.tokens.find((x) => x.n === n);
+            if (!t) return;
+            state.open = n;
+            const counts = state.data.traitCounts;
+            const total = state.tokens.length;
+            const price = state.listings.get(t.id);
+            $('m-img').src = `ordinals/img/${t.n}.webp`;
+            $('m-img').alt = `Brozo Ordinals #${t.n}`;
+            $('m-name').textContent = `Brozo Ordinals #${t.n}`;
+            $('m-meta').innerHTML = `Rarity rank <strong>${t.rank}</strong> of ${total} · score ${t.score}<br>` +
+                `Inscription <strong>#${t.ins.toLocaleString('en-US')}</strong>`;
+            $('m-price').textContent = price ? `For sale · ${btc(price)}` : '';
+            $('m-actions').innerHTML = `
+                <a class="cta-button btc" href="${satflowUrl(t)}" target="_blank" rel="noopener"><i class="fab fa-bitcoin"></i> ${price ? 'Buy on Satflow' : 'View on Satflow'}</a>
+                <a class="cta-button" href="${ipfs(`${state.data.ipfs.images}/${t.n}.png`)}" target="_blank" rel="noopener"><i class="fas fa-expand"></i> Full-res</a>
+                <a class="cta-button ghost" href="https://ordinals.com/inscription/${t.id}" target="_blank" rel="noopener"><i class="fas fa-link"></i> On-chain</a>
+                <a class="cta-button ghost" href="${ipfs(`${state.data.ipfs.metadata}/${t.n}.json`)}" target="_blank" rel="noopener"><i class="fas fa-code"></i> Metadata</a>`;
+            $('m-traits').innerHTML = state.data.traitTypes.map((type) => {
+                const value = t.traits[type] || 'None';
+                if (value === 'None' && (type === 'Career' || type === 'District')) return '';
+                const c = counts[type][value] || 0;
+                return `<tr><td class="t-type">${esc(type)}</td><td class="t-value">${esc(value)}</td>` +
+                    `<td class="t-pct">${c} · ${(100 * c / total).toFixed(1)}%</td></tr>`;
+            }).join('');
+            $('m-note').textContent = 'Shown at 600px. Full-res opens the 2400×2400 original on IPFS.';
+            $('modal').classList.add('open');
+            document.body.classList.add('modal-open');
+            if (location.hash !== `#${t.n}`) history.replaceState(null, '', `#${t.n}`);
+            $('modal-close').focus();
+        }
+
+        function closeModal() {
+            state.open = null;
+            $('modal').classList.remove('open');
+            document.body.classList.remove('modal-open');
+            history.replaceState(null, '', location.pathname + location.search);
+        }
+
+        function openFromHash() {
+            const n = parseInt(location.hash.slice(1), 10);
+            if (n >= 1 && n <= state.tokens.length) showModal(n);
+        }
+
+        $('grid').addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (card) showModal(parseInt(card.dataset.n, 10));
+        });
+        $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
+        $('modal-close').addEventListener('click', closeModal);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.open) closeModal(); });
+        window.addEventListener('hashchange', openFromHash);
+        $('search').addEventListener('input', render);
+        $('sort').addEventListener('change', render);
+        $('for-sale').addEventListener('change', render);
+        $('filters-btn').addEventListener('click', () => {
+            const show = $('filters').classList.toggle('show');
+            $('filters-btn').setAttribute('aria-expanded', String(show));
+        });
+        $('clear').addEventListener('click', () => {
+            $('search').value = '';
+            $('for-sale').checked = false;
+            state.filters = {};
+            for (const sel of $('filters').querySelectorAll('select')) sel.value = '';
+            render();
+        });
+
+        load().catch(() => { $('grid').innerHTML = '<div class="empty">Could not load the collection.</div>'; });
+    })();
+    </script>
+</body>
+</html>
