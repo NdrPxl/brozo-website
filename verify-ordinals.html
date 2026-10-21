@@ -200,7 +200,7 @@
                 if (body.ok) {
                     status(body.count > 0
                         ? `✅ Verified! This wallet holds ${body.count} Brozo Ordinal${body.count === 1 ? '' : 's'}. ` +
-                          'Your Ordinal Holder role is on its way, and Zobot sent you a DM. You can close this page.'
+                          'Your Ordinal Holder role is on its way (Zobot also DMs you if your DMs are open). You can close this page.'
                         : '✅ Wallet verified, but it holds no Brozo Ordinals right now. If they are in another wallet, ' +
                           'run /verify_ordinals again and connect that one.', 'ok');
                     $('btn-unisat').disabled = true;
