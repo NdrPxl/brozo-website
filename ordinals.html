@@ -132,7 +132,7 @@
         .card img { width: 100%; height: auto; aspect-ratio: 1; display: block; background: var(--brozo-ink); }
         .card-body { padding: 10px 12px 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
         .card-name { font-family: var(--font-display); font-size: 22px; letter-spacing: 1px; }
-        .card-rank { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--brozo-bone); white-space: nowrap; }
+        .card-rank { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--brozo-neon); white-space: nowrap; }
         .price-badge {
             position: absolute; top: 8px; left: 8px; background: var(--btc); color: var(--brozo-black);
             font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 4px 8px; letter-spacing: 0.5px;
@@ -159,6 +159,7 @@
         .modal-name { font-family: var(--font-display); font-size: 44px; letter-spacing: 1px; line-height: 1; }
         .modal-meta { font-family: var(--font-mono); font-size: 12px; color: var(--brozo-ash); margin-top: 8px; line-height: 1.8; }
         .modal-meta strong { color: var(--brozo-bone); font-weight: 500; }
+        .modal-meta .rank { color: var(--brozo-neon); font-weight: 700; }
         .modal-price { font-family: var(--font-display); font-size: 30px; color: var(--btc); margin-top: 14px; letter-spacing: 1px; }
         .modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
         .traits { width: 100%; border-collapse: collapse; margin-top: 22px; }
@@ -373,7 +374,7 @@
             $('m-img').src = `ordinals/img/${t.n}.webp`;
             $('m-img').alt = `Brozo Ordinals #${t.n}`;
             $('m-name').textContent = `Brozo Ordinals #${t.n}`;
-            $('m-meta').innerHTML = `Rarity rank <strong>${t.rank}</strong> of ${total} · score ${t.score}<br>` +
+            $('m-meta').innerHTML = `Rarity rank <strong class="rank">${t.rank}</strong> of ${total} · score ${t.score}<br>` +
                 `Inscription <strong>#${t.ins.toLocaleString('en-US')}</strong>`;
             $('m-price').textContent = price ? `For sale · ${btc(price)}` : '';
             $('m-actions').innerHTML = `
