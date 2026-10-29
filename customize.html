@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customize | Brozo</title>
+    <meta name="description" content="Buy items for your Brozo and change its look on chain.">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="images/brozo.ico?v=3" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brozo-black: #0A0A0A; --brozo-card: #111316; --brozo-line: #24272c; --brozo-neon: #00EFFF;
+            --brozo-bone: #F4F4F4; --brozo-ash: #9A9A9A; --ok: #3ddc84; --bad: #ff5c5c; --warn: #f7c948;
+            --font-display: 'Bebas Neue', sans-serif; --font-mono: 'JetBrains Mono', monospace; --font-body: 'Montserrat', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); }
+        body { background: var(--brozo-black); color: var(--brozo-bone); min-height: 100vh; }
+        .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 80px; }
+        .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+        .logo img { height: 36px; filter: drop-shadow(0 0 8px rgba(0, 239, 255, 0.35)); }
+        .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 3px; color: var(--brozo-neon); margin-bottom: 8px; }
+        h1 { font-family: var(--font-display); font-size: clamp(36px, 8vw, 56px); line-height: 0.95; letter-spacing: 1px; font-weight: normal; }
+        h2 { font-family: var(--font-display); font-size: 26px; letter-spacing: 1px; font-weight: normal; margin-bottom: 10px; }
+        p { color: var(--brozo-ash); line-height: 1.6; font-size: 14px; }
+        p strong { color: var(--brozo-bone); }
+        .pill { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 10px; border: 1px solid var(--brozo-line); color: var(--brozo-ash); }
+        .pill.net { border-color: var(--warn); color: var(--warn); }
+        .card { border: 1px solid var(--brozo-line); background: var(--brozo-card); padding: 18px; margin-top: 18px; }
+        .step-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--brozo-ash); text-transform: uppercase; margin-bottom: 12px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border: 1px solid var(--brozo-neon); background: transparent; color: var(--brozo-neon); cursor: pointer; transition: all .2s ease; min-height: 44px; }
+        .btn:hover:not(:disabled) { background: var(--brozo-neon); color: var(--brozo-black); }
+        .btn.solid { background: var(--brozo-neon); color: var(--brozo-black); }
+        .btn.solid:hover:not(:disabled) { background: transparent; color: var(--brozo-neon); }
+        .btn.ghost { border-color: var(--brozo-line); color: var(--brozo-ash); }
+        .btn.ghost:hover:not(:disabled) { border-color: var(--brozo-bone); color: var(--brozo-bone); background: transparent; }
+        .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .wallets { display: flex; gap: 10px; flex-wrap: wrap; }
+        .addr { font-family: var(--font-mono); font-size: 12px; color: var(--brozo-ash); word-break: break-all; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        .tile { border: 1px solid var(--brozo-line); background: #0d0f12; cursor: pointer; transition: border-color .2s; position: relative; }
+        .tile:hover, .tile.sel { border-color: var(--brozo-neon); }
+        .tile img { width: 100%; aspect-ratio: 1; display: block; object-fit: cover; background: #15181c; }
+        .tile .cap { padding: 8px 10px; font-family: var(--font-mono); font-size: 12px; display: flex; justify-content: space-between; gap: 6px; }
+        .tile .tag { position: absolute; top: 8px; left: 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; padding: 3px 6px; background: rgba(0,0,0,.7); color: var(--brozo-neon); border: 1px solid var(--brozo-neon); }
+        .tile.locked { opacity: .5; }
+        .detail { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 20px; }
+        @media (max-width: 760px) { .detail { grid-template-columns: 1fr; } }
+        .preview { width: 100%; aspect-ratio: 1; border: 1px solid var(--brozo-line); background: #15181c; display: block; }
+        .traits { font-family: var(--font-mono); font-size: 12px; color: var(--brozo-ash); line-height: 1.8; margin-top: 10px; }
+        .traits b { color: var(--brozo-bone); font-weight: 500; }
+        .traits .new { color: var(--brozo-neon); }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .status { margin-top: 14px; font-size: 14px; line-height: 1.6; min-height: 22px; font-family: var(--font-mono); }
+        .status.ok { color: var(--ok); } .status.bad { color: var(--bad); } .status.wait { color: var(--warn); }
+        .hidden { display: none !important; }
+        .muted { color: var(--brozo-ash); }
+        .price { color: var(--brozo-neon); }
+        a { color: var(--brozo-neon); }
+        .list { list-style: none; }
+        .list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--brozo-line); font-size: 14px; }
+        .list li:last-child { border-bottom: 0; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <a class="logo" href="index.html" aria-label="Brozo home"><img src="images/logo_blue_small.png" alt="Brozo"></a>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="pill net" id="net-pill">TESTNET</span>
+            <span class="pill hidden" id="acct-pill"></span>
+            <button class="btn ghost hidden" id="btn-disconnect" type="button">Disconnect</button>
+        </div>
+    </div>
+
+    <div class="eyebrow">// TRAIT EXCHANGE</div>
+    <h1>CUSTOMIZE<br>YOUR BROZO.</h1>
+    <p style="margin-top:12px;max-width:62ch">Buy an item once and it belongs to that Brozo for good. Equip it, take it off, switch, or go back to the
+        original whenever you like. <strong>The purchase is the only transaction you pay.</strong> Applying the change on chain is on us.
+        Items stay with the Brozo if it is sold.</p>
+
+    <div class="card" id="connect-card">
+        <div class="step-label">1 · Connect the wallet that holds your Brozos</div>
+        <div class="wallets" id="wallets"><button class="btn solid" id="btn-connect" type="button">Connect wallet</button></div>
+        <p class="status" id="connect-status"></p>
+    </div>
+
+    <div class="card hidden" id="tokens-card">
+        <div class="step-label">2 · Pick a Brozo</div>
+        <div class="grid" id="tokens"></div>
+        <p class="status" id="tokens-status"></p>
+    </div>
+
+    <div class="card hidden" id="detail-card">
+        <div class="step-label">3 · Choose a look</div>
+        <div class="detail">
+            <div>
+                <img class="preview" id="preview" alt="Preview">
+                <div class="traits" id="traits"></div>
+                <div class="row">
+                    <button class="btn ghost" id="btn-revert" type="button">Back to original</button>
+                </div>
+            </div>
+            <div>
+                <h2 id="detail-title">BROZO</h2>
+                <div class="step-label" style="margin-top:8px">Your wardrobe</div>
+                <ul class="list" id="wardrobe"></ul>
+                <div class="step-label" style="margin-top:18px">Shop</div>
+                <div class="grid" id="catalog"></div>
+                <div class="row">
+                    <button class="btn solid" id="btn-buy" type="button" disabled>Buy</button>
+                    <button class="btn" id="btn-equip" type="button" disabled>Equip</button>
+                </div>
+                <p class="status" id="action-status" role="status" aria-live="polite"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    // ---- config: test mode. Switch with ?network=mainnet once the mainnet manager exists.
+    const q = new URLSearchParams(location.search);
+    const NETWORKS = {
+        testnet: { chainId: '0x152', name: 'Cronos Testnet', rpc: 'https://evm-t3.cronos.org', explorer: 'https://explorer.cronos.org/testnet', symbol: 'TCRO', api: 'https://api.brozo.co/exchange' },
+        mainnet: { chainId: '0x19',  name: 'Cronos',         rpc: 'https://evm.cronos.org',    explorer: 'https://explorer.cronos.org',         symbol: 'CRO',  api: 'https://api.brozo.co/exchange' },
+    };
+    const netName = NETWORKS[q.get('network')] ? q.get('network') : 'testnet';
+    const NET = NETWORKS[netName];
+    const API = q.get('api') || NET.api;
+    const PURCHASE_SELECTOR = '0x88888f61'; // purchase(uint256,bytes32)
+
+    const $ = (id) => document.getElementById(id);
+    const state = { provider: null, account: null, tokens: [], token: null, catalog: [], manager: null, item: null, pollTimer: null };
+    $('net-pill').textContent = netName.toUpperCase();
+    if (netName !== 'testnet') $('net-pill').classList.remove('net');
+
+    const setStatus = (id, text, cls) => { const el = $(id); el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); };
+    const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
+    const hex32 = (n) => '0x' + BigInt(n).toString(16).padStart(64, '0');
+    const api = async (path, opts) => {
+        const r = await fetch(API + path, opts);
+        const j = await r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
+        if (!r.ok || j.ok === false) throw new Error(j.error || `HTTP ${r.status}`);
+        return j;
+    };
+
+    // ---- wallets: EIP-6963 discovery, window.ethereum fallback
+    const providers = new Map();
+    window.addEventListener('eip6963:announceProvider', (e) => {
+        const { info, provider } = e.detail;
+        if (providers.has(info.uuid)) return;
+        providers.set(info.uuid, { info, provider });
+        renderWalletButtons();
+    });
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    function renderWalletButtons() {
+        const box = $('wallets');
+        box.innerHTML = '';
+        if (!providers.size) { box.innerHTML = '<button class="btn solid" id="btn-connect" type="button">Connect wallet</button>'; $('btn-connect').onclick = () => connect(window.ethereum); return; }
+        for (const { info, provider } of providers.values()) {
+            const b = document.createElement('button'); b.className = 'btn'; b.type = 'button';
+            b.innerHTML = `<img src="${info.icon}" alt="" style="height:18px;width:18px"> ${info.name}`;
+            b.onclick = () => connect(provider);
+            box.appendChild(b);
+        }
+    }
+    $('btn-connect').onclick = () => connect(window.ethereum);
+
+    async function connect(provider) {
+        try {
+            if (!provider) throw new Error('No wallet found. Install MetaMask, Rabby or the Crypto.com DeFi Wallet extension.');
+            setStatus('connect-status', 'Connecting…', 'wait');
+            const [account] = await provider.request({ method: 'eth_requestAccounts' });
+            await ensureChain(provider);
+            state.provider = provider; state.account = account.toLowerCase();
+            provider.on && provider.on('accountsChanged', () => location.reload());
+            provider.on && provider.on('chainChanged', () => location.reload());
+            $('acct-pill').textContent = short(account); $('acct-pill').classList.remove('hidden'); $('btn-disconnect').classList.remove('hidden');
+            $('connect-card').classList.add('hidden');
+            setStatus('connect-status', '');
+            await loadTokens();
+        } catch (e) { setStatus('connect-status', e.message || String(e), 'bad'); }
+    }
+    $('btn-disconnect').onclick = () => location.reload();
+
+    async function ensureChain(provider) {
+        const current = await provider.request({ method: 'eth_chainId' });
+        if (current.toLowerCase() === NET.chainId) return;
+        try { await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET.chainId }] }); }
+        catch (e) {
+            if (e.code !== 4902 && !/unrecognized|not added|4902/i.test(e.message || '')) throw e;
+            await provider.request({ method: 'wallet_addEthereumChain', params: [{ chainId: NET.chainId, chainName: NET.name, rpcUrls: [NET.rpc], nativeCurrency: { name: NET.symbol, symbol: NET.symbol, decimals: 18 }, blockExplorerUrls: [NET.explorer] }] });
+        }
+    }
+
+    // ---- tokens
+    async function loadTokens() {
+        $('tokens-card').classList.remove('hidden');
+        setStatus('tokens-status', 'Loading your Brozos…', 'wait');
+        try {
+            const [t, c] = await Promise.all([api(`/tokens?owner=${state.account}`), api('/catalog')]);
+            state.tokens = t.tokens; state.catalog = c.items; state.manager = c.manager;
+            if (c.chain_id && parseInt(NET.chainId, 16) !== c.chain_id) throw new Error(`The exchange is serving chain ${c.chain_id}; this page is on ${parseInt(NET.chainId, 16)}.`);
+            renderTokens();
+            setStatus('tokens-status', state.tokens.length ? '' : 'No Brozos found in this wallet on ' + NET.name + '.', state.tokens.length ? '' : 'bad');
+        } catch (e) { setStatus('tokens-status', e.message, 'bad'); }
+    }
+    function renderTokens() {
+        const g = $('tokens'); g.innerHTML = '';
+        for (const t of state.tokens) {
+            const d = document.createElement('div'); d.className = 'tile' + (state.token && state.token.token_id === t.token_id ? ' sel' : '') + (t.customizable ? '' : ' locked');
+            d.innerHTML = `<img src="${t.image_url}" alt="${t.name}" loading="lazy">${t.equipped_item ? '<span class="tag">CUSTOM</span>' : ''}<div class="cap"><span>#${t.token_id}</span><span class="muted">${t.customizable ? (t.wardrobe.length ? t.wardrobe.length + ' item' + (t.wardrobe.length > 1 ? 's' : '') : '') : '1/1'}</span></div>`;
+            d.onclick = () => selectToken(t.token_id);
+            g.appendChild(d);
+        }
+    }
+
+    async function selectToken(id) {
+        state.item = null;
+        const t = (await api(`/token/${id}`)).token;
+        state.token = t;
+        state.tokens = state.tokens.map((x) => (x.token_id === id ? t : x));
+        renderTokens();
+        $('detail-card').classList.remove('hidden');
+        $('detail-title').textContent = t.name + (t.equipped_item ? ' · ' + t.equipped_item : '');
+        $('preview').src = t.image_url;
+        renderTraits(t.traits);
+        renderWardrobe(t);
+        renderCatalog(t);
+        $('btn-revert').disabled = !t.equipped_item || !!t.pending_job;
+        $('btn-buy').disabled = true; $('btn-equip').disabled = true;
+        if (!t.customizable) setStatus('action-status', 'This Brozo is a 1-of-1 and cannot be customized.', 'bad');
+        else if (t.pending_job) { setStatus('action-status', `Working on it… (${t.pending_job.kind} ${t.pending_job.item_id || ''}: ${t.pending_job.status})`, 'wait'); pollJob(t.pending_job.id); }
+        else setStatus('action-status', '');
+        $('detail-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function renderTraits(traits, highlightSlot) {
+        $('traits').innerHTML = Object.entries(traits || {}).map(([k, v]) => `<div><b>${k}</b> · <span class="${k === highlightSlot ? 'new' : ''}">${v}</span></div>`).join('');
+    }
+    function renderWardrobe(t) {
+        const ul = $('wardrobe'); ul.innerHTML = '';
+        if (!t.wardrobe.length) { ul.innerHTML = '<li class="muted">Nothing yet. Buy an item below.</li>'; return; }
+        for (const w of t.wardrobe) {
+            const li = document.createElement('li');
+            const on = t.equipped_item === w.item_id;
+            li.innerHTML = `<span>${w.display_name} <span class="muted">· ${w.slot}</span></span>`;
+            const b = document.createElement('button'); b.className = 'btn' + (on ? ' ghost' : ''); b.type = 'button'; b.textContent = on ? 'Equipped' : 'Equip'; b.disabled = on || !!t.pending_job;
+            b.onclick = () => signedAction('equip', w.item_id);
+            li.appendChild(b); ul.appendChild(li);
+        }
+    }
+    function renderCatalog(t) {
+        const g = $('catalog'); g.innerHTML = '';
+        const owned = new Set(t.wardrobe.map((w) => w.item_id));
+        for (const it of state.catalog) {
+            const d = document.createElement('div'); d.className = 'tile' + (it.sold_out && !owned.has(it.item_id) ? ' locked' : '');
+            d.innerHTML = `<img src="${API}${it.preview_url}" alt="${it.display_name}" loading="lazy"><div class="cap"><span>${it.display_name}</span><span class="${owned.has(it.item_id) ? 'muted' : 'price'}">${owned.has(it.item_id) ? 'owned' : it.price_cro + ' ' + NET.symbol}</span></div>`;
+            d.onclick = () => selectItem(it, owned.has(it.item_id));
+            g.appendChild(d);
+        }
+        if (!state.catalog.length) g.innerHTML = '<p class="muted">No items on sale right now.</p>';
+    }
+    function selectItem(it, owned) {
+        state.item = it;
+        document.querySelectorAll('#catalog .tile').forEach((el, i) => el.classList.toggle('sel', state.catalog[i] === it));
+        $('preview').src = `${API}/preview/${state.token.token_id}?item=${encodeURIComponent(it.item_id)}`;
+        renderTraits({ ...state.token.traits, [it.slot]: it.item_id }, it.slot);
+        $('btn-buy').disabled = owned || it.sold_out || !state.token.customizable || !!state.token.pending_job;
+        $('btn-buy').textContent = owned ? 'Owned' : `Buy for ${it.price_cro} ${NET.symbol}`;
+        $('btn-equip').disabled = !owned || state.token.equipped_item === it.item_id || !!state.token.pending_job;
+        setStatus('action-status', owned ? '' : `${it.display_name}: ${it.price_cro} ${NET.symbol}${it.supply_cap ? ` · ${it.supply_cap - it.sold} of ${it.supply_cap} left` : ''}`);
+    }
+
+    // ---- buy: one wallet transaction to the SkinManager
+    $('btn-buy').onclick = async () => {
+        const it = state.item, t = state.token;
+        if (!it || !t) return;
+        try {
+            setStatus('action-status', 'Confirm the purchase in your wallet…', 'wait');
+            const data = PURCHASE_SELECTOR + hex32(t.token_id).slice(2) + it.item_key.slice(2);
+            const value = '0x' + BigInt(it.price_wei).toString(16);
+            const tx = await state.provider.request({ method: 'eth_sendTransaction', params: [{ from: state.account, to: state.manager, value, data }] });
+            setStatus('action-status', `Purchase sent (${short(tx)}). Waiting for the chain…`, 'wait');
+            $('btn-buy').disabled = true;
+            await pollOrder(tx);
+        } catch (e) { setStatus('action-status', e.message || 'Transaction rejected.', 'bad'); }
+    };
+    async function pollOrder(tx) {
+        for (let i = 0; i < 120; i++) {
+            await new Promise((r) => setTimeout(r, 5000));
+            let o; try { o = await api(`/orders/${tx}`); } catch { continue; }
+            if (o.status === 'pending' || o.status === 'paid') { setStatus('action-status', 'Paid. Rendering your Brozo…', 'wait'); continue; }
+            if (o.status === 'done') { setStatus('action-status', `Done! ${o.payment.item_id} is on #${o.payment.token_id}.`, 'ok'); await selectToken(o.payment.token_id); return; }
+            if (o.status === 'failed') { setStatus('action-status', `Something went wrong applying the item (${o.job && o.job.error}). Your purchase is recorded; we will sort it out.`, 'bad'); return; }
+            setStatus('action-status', `Working on it… (${o.status})`, 'wait');
+        }
+        setStatus('action-status', 'Still working. Refresh in a minute to see the result.', 'wait');
+    }
+
+    // ---- equip / revert: free, authorised with a signature
+    $('btn-equip').onclick = () => state.item && signedAction('equip', state.item.item_id);
+    $('btn-revert').onclick = () => signedAction('revert', null);
+    const message = ({ action, tokenId, itemId, address, nonce, expires }) =>
+        ['Brozo Trait Exchange', `Action: ${action}`, `Token: ${tokenId}`, `Item: ${itemId || '-'}`, `Wallet: ${address}`, `Nonce: ${nonce}`, `Expires: ${expires}`].join('\n');
+    async function signedAction(action, itemId) {
+        const t = state.token;
+        try {
+            const n = await api(`/nonce?address=${state.account}`);
+            const body = { action, tokenId: t.token_id, itemId, address: n.address, nonce: n.nonce, expires: n.expires };
+            setStatus('action-status', 'Sign the request in your wallet (free, not a transaction)…', 'wait');
+            const msg = message(body);
+            const hexMsg = '0x' + Array.from(new TextEncoder().encode(msg)).map((b) => b.toString(16).padStart(2, '0')).join('');
+            body.signature = await state.provider.request({ method: 'personal_sign', params: [hexMsg, state.account] });
+            const r = await api(`/${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            setStatus('action-status', action === 'revert' ? 'Reverting…' : 'Applying…', 'wait');
+            await pollJob(r.job_id);
+        } catch (e) { setStatus('action-status', e.message || 'Signature rejected.', 'bad'); }
+    }
+    async function pollJob(jobId) {
+        for (let i = 0; i < 120; i++) {
+            await new Promise((r) => setTimeout(r, 5000));
+            let j; try { j = await api(`/jobs/${jobId}`); } catch { continue; }
+            if (j.job.status === 'done') { setStatus('action-status', j.job.kind === 'revert' ? 'Back to the original.' : `Done! ${j.job.item_id} is on.`, 'ok'); await selectToken(j.job.token_id); return; }
+            if (j.job.status === 'failed') { setStatus('action-status', `Failed: ${j.job.error}`, 'bad'); return; }
+            setStatus('action-status', `Working on it… (${j.job.status})`, 'wait');
+        }
+    }
+})();
+</script>
+</body>
+</html>
