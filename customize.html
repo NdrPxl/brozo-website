@@ -70,8 +70,7 @@
         <a class="logo" href="index.html" aria-label="Brozo home"><img src="images/logo_blue_small.png" alt="Brozo"></a>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <span class="pill net" id="net-pill">TESTNET</span>
-            <span class="pill hidden" id="acct-pill"></span>
-            <button class="btn ghost hidden" id="btn-disconnect" type="button">Disconnect</button>
+            <button class="btn" id="connectBtn" type="button">Connect Wallet</button>
         </div>
     </div>
 
@@ -83,7 +82,7 @@
 
     <div class="card" id="connect-card">
         <div class="step-label">1 · Connect the wallet that holds your Brozos</div>
-        <div class="wallets" id="wallets"><button class="btn solid" id="btn-connect" type="button">Connect wallet</button></div>
+        <button class="btn solid" id="btn-connect" type="button">Connect Wallet</button>
         <p class="status" id="connect-status"></p>
     </div>
 
@@ -147,44 +146,36 @@
         return j;
     };
 
-    // ---- wallets: EIP-6963 discovery, window.ethereum fallback
-    const providers = new Map();
-    window.addEventListener('eip6963:announceProvider', (e) => {
-        const { info, provider } = e.detail;
-        if (providers.has(info.uuid)) return;
-        providers.set(info.uuid, { info, provider });
-        renderWalletButtons();
-    });
-    window.dispatchEvent(new Event('eip6963:requestProvider'));
-    function renderWalletButtons() {
-        const box = $('wallets');
-        box.innerHTML = '';
-        if (!providers.size) { box.innerHTML = '<button class="btn solid" id="btn-connect" type="button">Connect wallet</button>'; $('btn-connect').onclick = () => connect(window.ethereum); return; }
-        for (const { info, provider } of providers.values()) {
-            const b = document.createElement('button'); b.className = 'btn'; b.type = 'button';
-            b.innerHTML = `<img src="${info.icon}" alt="" style="height:18px;width:18px"> ${info.name}`;
-            b.onclick = () => connect(provider);
-            box.appendChild(b);
-        }
-    }
-    $('btn-connect').onclick = () => connect(window.ethereum);
-
-    async function connect(provider) {
+    // ---- wallet: same shape as MonarchPad (wallet-btn.js / mint.js): window.ethereum, one button,
+    // remembered in localStorage so the next visit reconnects silently.
+    const eth = () => window.ethereum;
+    const REMEMBER = 'brozo_wallet';
+    const showAcct = (a) => { const b = $('connectBtn'); b.textContent = a ? short(a) : 'Connect Wallet'; b.classList.toggle('ghost', !!a); };
+    async function connect({ silent = false } = {}) {
         try {
-            if (!provider) throw new Error('No wallet found. Install MetaMask, Rabby or the Crypto.com DeFi Wallet extension.');
-            setStatus('connect-status', 'Connecting…', 'wait');
-            const [account] = await provider.request({ method: 'eth_requestAccounts' });
-            await ensureChain(provider);
-            state.provider = provider; state.account = account.toLowerCase();
-            provider.on && provider.on('accountsChanged', () => location.reload());
-            provider.on && provider.on('chainChanged', () => location.reload());
-            $('acct-pill').textContent = short(account); $('acct-pill').classList.remove('hidden'); $('btn-disconnect').classList.remove('hidden');
+            if (!eth()) throw new Error('No wallet found. Install MetaMask, Rabby or the Crypto.com DeFi Wallet extension and reload.');
+            if (!silent) setStatus('connect-status', 'Connecting…', 'wait');
+            const accounts = await eth().request({ method: silent ? 'eth_accounts' : 'eth_requestAccounts' });
+            if (!accounts || !accounts[0]) { if (!silent) setStatus('connect-status', 'No account selected.', 'bad'); return; }
+            await ensureChain(eth());
+            state.provider = eth(); state.account = accounts[0].toLowerCase();
+            try { localStorage.setItem(REMEMBER, '1'); } catch (_) {}
+            showAcct(accounts[0]);
             $('connect-card').classList.add('hidden');
             setStatus('connect-status', '');
             await loadTokens();
-        } catch (e) { setStatus('connect-status', e.message || String(e), 'bad'); }
+        } catch (e) { if (!silent) setStatus('connect-status', e.message || String(e), 'bad'); }
     }
-    $('btn-disconnect').onclick = () => location.reload();
+    $('btn-connect').onclick = () => connect();
+    $('connectBtn').onclick = () => {
+        if (!state.account) return connect();
+        try { localStorage.removeItem(REMEMBER); } catch (_) {}
+        location.reload();
+    };
+    eth()?.on?.('accountsChanged', () => location.reload());
+    eth()?.on?.('chainChanged', () => location.reload());
+    let remembered = false; try { remembered = localStorage.getItem(REMEMBER) === '1'; } catch (_) {}
+    if (remembered && eth()) connect({ silent: true });
 
     async function ensureChain(provider) {
         const current = await provider.request({ method: 'eth_chainId' });
@@ -212,7 +203,7 @@
         const g = $('tokens'); g.innerHTML = '';
         for (const t of state.tokens) {
             const d = document.createElement('div'); d.className = 'tile' + (state.token && state.token.token_id === t.token_id ? ' sel' : '') + (t.customizable ? '' : ' locked');
-            d.innerHTML = `<img src="${t.image_url}" alt="${t.name}" loading="lazy">${t.equipped_item ? '<span class="tag">CUSTOM</span>' : ''}<div class="cap"><span>#${t.token_id}</span><span class="muted">${t.customizable ? (t.wardrobe.length ? t.wardrobe.length + ' item' + (t.wardrobe.length > 1 ? 's' : '') : '') : '1/1'}</span></div>`;
+            d.innerHTML = `<img src="${t.image_url}" alt="${t.name}" loading="lazy">${t.equipped_item ? `<span class="tag">${t.equipped_item}</span>` : ''}<div class="cap"><span>#${t.token_id}</span><span class="muted">${t.customizable ? (t.wardrobe.length ? t.wardrobe.length + ' item' + (t.wardrobe.length > 1 ? 's' : '') : '') : '1/1'}</span></div>`;
             d.onclick = () => selectToken(t.token_id);
             g.appendChild(d);
         }
