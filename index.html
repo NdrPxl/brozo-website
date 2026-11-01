@@ -384,117 +384,64 @@
             color: var(--brozo-ash);
         }
 
-        /* ============== ABOUT (legacy section, restyled for transition) ============== */
         .section {
             padding: 100px 0;
         }
 
-        .about-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-        }
-
-        .feature {
-            background: rgba(20, 20, 20, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 32px 28px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(8px);
-        }
-
-        .feature:hover {
-            border-color: rgba(0, 239, 255, 0.3);
-            transform: translateY(-4px);
-        }
-
-        .feature-icon {
-            font-size: 28px;
-            margin-bottom: 18px;
-            color: var(--brozo-neon);
-        }
-
-        .feature-title {
-            font-family: var(--font-display);
-            font-size: 22px;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            color: var(--brozo-bone);
-        }
-
-        .feature-text {
-            font-size: 15px;
-            line-height: 1.6;
-            color: var(--brozo-ash);
-        }
-
         /* ============== UTILITY / HOLDER BENEFITS ============== */
-        .utility-grid {
+        .strip {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0 40px;
+            max-width: 960px;
+            margin: 0 auto;
         }
 
-        .perk {
-            background: rgba(20, 20, 20, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 32px 28px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(8px);
+        .strip-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            min-width: 0;
         }
 
-        .perk:hover {
-            border-color: rgba(0, 239, 255, 0.3);
-            transform: translateY(-4px);
-        }
-
-        .perk-icon {
-            font-size: 28px;
-            margin-bottom: 18px;
+        .strip-icon {
+            font-size: 22px;
             color: var(--brozo-neon);
+            width: 32px;
+            flex: none;
+            line-height: 1.2;
         }
 
-        .perk-title {
+        .strip-body { min-width: 0; }
+
+        .strip-label {
             font-family: var(--font-display);
             font-size: 22px;
             letter-spacing: 1px;
-            margin-bottom: 14px;
             color: var(--brozo-bone);
+            margin-bottom: 4px;
         }
 
-        .perk-list {
-            list-style: none;
-        }
-
-        .perk-list li {
+        .strip-text {
             font-size: 15px;
             line-height: 1.6;
             color: var(--brozo-ash);
-            padding-left: 22px;
-            position: relative;
-            margin-bottom: 10px;
         }
 
-        .perk-list li::before {
-            content: '+';
-            position: absolute;
-            left: 0;
-            font-family: var(--font-mono);
-            color: var(--brozo-neon);
-        }
-
-        .perk-list a {
+        .strip-text a {
             color: var(--brozo-neon);
             text-decoration: none;
             border-bottom: 1px solid transparent;
             transition: border-color 0.3s ease;
         }
 
-        .perk-list a:hover {
+        .strip-text a:hover {
             border-bottom-color: var(--brozo-neon);
         }
 
-        .perk-list code {
+        .strip-text code {
             font-family: var(--font-mono);
             font-size: 13px;
             color: var(--brozo-neon);
@@ -637,7 +584,7 @@
 
         /* ============== RESPONSIVE ============== */
         @media (max-width: 900px) {
-            .utility-grid {
+            .strip {
                 grid-template-columns: 1fr;
             }
 
@@ -685,7 +632,6 @@
             </a>
 
             <div class="nav-links">
-                <a href="#about" class="nav-link">About</a>
                 <a href="#collection" class="nav-link">Collection</a>
                 <a href="#utility" class="nav-link">Utility</a>
                 <a href="ordinals.html" class="nav-link">Ordinals</a>
@@ -740,44 +686,13 @@
         </div>
     </section>
 
-    <!-- ABOUT -->
-    <section class="section" id="about">
-        <div class="container">
-            <div class="section-eyebrow reveal">// ABOUT</div>
-            <h2 class="section-title reveal">UNKNOWN ORIGIN.<br>UNMATCHED MINDSET.</h2>
-            <p class="section-subtitle reveal">
-                Brozo is a collection of hand-drawn robots with attitude. Built for holders who want more than a profile picture — a real community, real utility, and a future we're building on Web 3.
-            </p>
-
-            <div class="about-features">
-                <div class="feature reveal">
-                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
-                    <h3 class="feature-title">ROBOTIC PERSONAS</h3>
-                    <p class="feature-text">Every Brozo is unique. Distinct traits, distinct attitude, distinct on-chain identity.</p>
-                </div>
-
-                <div class="feature reveal">
-                    <div class="feature-icon"><i class="fas fa-paint-brush"></i></div>
-                    <h3 class="feature-title">HAND-DRAWN ART</h3>
-                    <p class="feature-text">Every trait drawn from scratch. No generators, no shortcuts, no AI slop. Built different from the line up.</p>
-                </div>
-
-                <div class="feature reveal">
-                    <div class="feature-icon"><i class="fas fa-cube"></i></div>
-                    <h3 class="feature-title">BUILDING IN WEB3</h3>
-                    <p class="feature-text">Discord tools, staking on Cronos, a backed token economy. We ship what we say we'll ship.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- COLLECTION (transition into legacy beige zone) -->
     <section class="collection" id="collection">
         <div class="container">
             <div class="section-eyebrow reveal">// THE COLLECTION</div>
             <h2 class="section-title reveal">MEET THE <span style="color: var(--brozo-neon);">BROZOS</span></h2>
             <p class="section-subtitle reveal">
-                The originals: migrated from Polygon, reborn and live on Cronos.
+                Hand-drawn robots with attitude. Every trait drawn from scratch: no generators, no shortcuts. The originals migrated from Polygon and live on Cronos.
             </p>
 
             <div class="gallery">
@@ -822,43 +737,71 @@
     <section class="section" id="utility">
         <div class="container">
             <div class="section-eyebrow reveal">// UTILITY</div>
-            <h2 class="section-title reveal">ART. GAMES. <span style="color: var(--brozo-neon);">UTILITY.</span></h2>
+            <h2 class="section-title reveal">YOUR BROZO WORKS. <span style="color: var(--brozo-neon);">YOU GET PAID.</span></h2>
             <p class="section-subtitle reveal">
-                Brozo is a hand-drawn NFT community built for people who want more than a static collectible.
+                Hold it, work it, play it. Every Brozo earns <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a> from day one, and that is just the floor.
             </p>
 
-            <div class="utility-grid">
-                <div class="perk reveal">
-                    <div class="perk-icon"><i class="fas fa-coins"></i></div>
-                    <h3 class="perk-title">STAKING</h3>
-                    <ul class="perk-list">
-                        <li>Soft stake your Brozos directly in Discord for <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a></li>
-                        <li>Daily <code>/work</code> for Rarity-Weighted Earning</li>
-                        <li>Sales royalties are compounded in a <a href="https://wolfswap.app/stake" target="_blank">Wolfswap vault</a> and feed into rewards</li>
-                    </ul>
+            <div class="strip">
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-coins"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">HOLD &amp; EARN</h3>
+                        <p class="strip-text">Register your wallet once and every Brozo in it earns <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a> around the clock. No lock-up, no transfer, your bots never leave your wallet. <code>/bank</code> it whenever you like.</p>
+                    </div>
                 </div>
-
-                <div class="perk reveal">
-                    <div class="perk-icon"><i class="fas fa-gamepad"></i></div>
-                    <h3 class="perk-title">GAMES</h3>
-                    <ul class="perk-list">
-                        <li><code>/toss</code> to grow your <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a> balance beyond staking</li>
-                        <li>Watch our Bitcoin Miner (rewards go to NFT and <a href="https://www.satflow.com/ordinals/brozo-ordinals" target="_blank">Ordinal</a> holders)</li>
-                        <li>Join our gamers in <a href="https://wolfswap.app/wolfage" target="_blank">Wolfage</a>, <a href="https://aideabot.vip/games" target="_blank">AIdea</a>, <a href="https://spacewarx.degengames.ca/game" target="_blank">Space War X</a>, and more&hellip;</li>
-                    </ul>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-dog"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">WAGZ</h3>
+                        <p class="strip-text">Your resident degen in the Discord. Runs the raffles and the games, calls the shout-outs, talks shop at 3am and never sleeps.</p>
+                    </div>
                 </div>
-
-                <div class="perk reveal">
-                    <div class="perk-icon"><i class="fas fa-ticket-alt"></i></div>
-                    <h3 class="perk-title">RAIDS &amp; RAFFLES</h3>
-                    <ul class="perk-list">
-                        <li>Fulfill Quests to earn points for NFT and Token raffles</li>
-                        <li>Powered by <a href="https://flipsuite.xyz/" target="_blank">Flipsuite</a></li>
-                    </ul>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-hammer"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">WORK</h3>
+                        <p class="strip-text">Pick a worker Brozo and send it to <code>/work</code> every day for a bonus payday on top of the drip. Rarer bot, bigger check.</p>
+                    </div>
+                </div>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">WAGZ FEED</h3>
+                        <p class="strip-text">Every X Space scribed and recapped, free for holders, plus the <a href="https://x.com/BrozoCro" target="_blank">Cronos news roundup</a> every Tuesday and Friday. The whole ecosystem, without sitting through it.</p>
+                    </div>
+                </div>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-gamepad"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">PLAY</h3>
+                        <p class="strip-text">Flip your <a href="https://wolfswap.app/pack" target="_blank"><strong>$PACK</strong></a> on <code>/toss</code>, then take the crew into <a href="https://wolfswap.app/wolfage" target="_blank">Wolfage</a>, <a href="https://aideabot.vip/games" target="_blank">AIdea</a> and <a href="https://spacewarx.degengames.ca/game" target="_blank">Space War X</a>.</p>
+                    </div>
+                </div>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-microchip"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">MINE</h3>
+                        <p class="strip-text">A real BitAxe hashing Bitcoin for the crew. When it finds a block, Brozo and <a href="https://www.satflow.com/ordinals/brozo-ordinals" target="_blank">Ordinal</a> holders split the win.</p>
+                    </div>
+                </div>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">RAID &amp; WIN</h3>
+                        <p class="strip-text">Raid the posts, finish the quests, stack points, spend them on NFT and token raffles. <a href="https://flipsuite.xyz/" target="_blank">Flipsuite</a> keeps score.</p>
+                    </div>
+                </div>
+                <div class="strip-row reveal">
+                    <div class="strip-icon"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="strip-body">
+                        <h3 class="strip-label">VAULT</h3>
+                        <p class="strip-text">Every secondary sale feeds a <a href="https://wolfswap.app/stake" target="_blank">Wolfswap vault</a> that compounds and pays back into the rewards. The floor works for you.</p>
+                    </div>
                 </div>
             </div>
 
-            <p class="utility-tagline reveal">JOIN THE COMMUNITY. STAKE IT. EARN WITH IT.</p>
+            <p class="utility-tagline reveal">ONE PROJECT. EIGHT WAYS TO EAT.</p>
             <div style="text-align: center;">
                 <a href="https://discord.gg/KF4pNxpwRv" class="cta-button ghost" target="_blank">
                     <i class="fab fa-discord"></i> JOIN DISCORD
