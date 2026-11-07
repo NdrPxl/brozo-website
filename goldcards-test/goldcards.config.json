@@ -1,0 +1,13 @@
+{
+  "model": "models/pack.glb",
+  "packFront": "art/pack-front.png",
+  "packBack": "art/pack-back.png",
+  "cardBack": "art/card-back.png",
+  "cards": [
+    { "front": "art/cards/card-1.png", "name": "The Gold Knight" },
+    { "front": "art/cards/card-2.png", "name": "Ember Dragon" },
+    { "front": "art/cards/card-3.png", "name": "Forest Archer" },
+    { "front": "art/cards/card-4.png", "name": "Tide Mage" },
+    { "front": "art/cards/card-5.png", "name": "Castle Guard" }
+  ]
+}
