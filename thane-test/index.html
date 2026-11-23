@@ -46,6 +46,10 @@ button:disabled { opacity: .45; cursor: default; }
 #lanes { display: grid; grid-template-columns: repeat(3, 172px); gap: 4px 10px; }
 .lane { background: var(--slot); border: 1px dashed var(--line); border-radius: 10px; padding: 5px; min-height: 222px; position: relative; display: flex; }
 .lane .card { flex: 1; min-height: 210px; }
+/* every lane place is the same size, filled or empty, on both sides: the card's text area takes what the picture leaves */
+#lanes .lane:not(.bench):not(.benchslot) { height: var(--lane-h, 268px); min-height: 0; }
+#lanes .lane:not(.bench):not(.benchslot) .card { min-height: 0; height: 100%; }
+#lanes .lane .card .moves, #lanes .lane .card .txt { max-height: 78%; overflow: hidden; }
 .lane .hole { flex: 1; border-radius: 8px; display: grid; place-items: center; color: var(--muted); font-size: .8rem; text-align: center; padding: 8px; cursor: default; }
 .lane .hole.glow { box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--gold); cursor: pointer; color: var(--ink); }
 .lane.bench { min-height: 118px; background: transparent; }
@@ -144,7 +148,7 @@ button:disabled { opacity: .45; cursor: default; }
 details { margin-top: 14px; color: var(--muted); font-size: .85rem; }
 details p { margin: 6px 0; }
 @media (max-width: 1000px) {
-  #mid { grid-template-columns: 1fr; } #lanes { order: -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #mid { grid-template-columns: 1fr; } #lanes { order: -1; grid-template-columns: repeat(3, minmax(0, 1fr)); } #lanes { --lane-h: 284px; }
 }
 
 /* the versions page: boards of 3 or 1 + 3, and the marks the six rule sets need */
