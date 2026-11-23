@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
-<meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thane</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -188,6 +188,9 @@ details p { margin: 6px 0; }
 .cmdbox .line { font-size: .8rem; line-height: 1.3; } .cmdbox .line b { font-weight: 700; } .cmdbox .line.did { outline: 2px solid var(--gold); border-radius: 6px; padding: 2px 5px; }
 .cmdbox .price { display: inline-block; min-width: 24px; text-align: center; font-weight: 700; border-radius: 5px; background: var(--foe); color: var(--panel); padding: 0 4px; margin-right: 5px; }
 .cmdbox .price.plus { background: var(--good); }
+.cmdbox .price.zero { background: var(--muted); }
+/* a made fighter (Recruit, Sandbag, Champion): not a card, so it looks like a token, not like a card */
+.card.made { border-style: dashed; border-width: 3px; background: repeating-linear-gradient(135deg, var(--panel) 0 10px, var(--slot) 10px 20px); } .card.made .name { font-style: italic; letter-spacing: .04em; text-transform: uppercase; } .card .kw.madetag { background: var(--muted); }
 .cmdbox .line.rest { color: var(--muted); border-top: 1px dashed var(--line); padding-top: 5px; } .cmdbox .line.rest.on { color: var(--ink); font-weight: 600; }
 .card .kw.toll { top: 46px; }
 @media (max-width: 1000px) {
@@ -204,7 +207,7 @@ details p { margin: 6px 0; }
     <label class="label" title="How fast cards and numbers move; off shows each result at once.">Animation <select id="speed"><option value="1">normal</option><option value="2">fast</option><option value="0">off</option></select></label>
     <label class="label" style="display:flex;align-items:center;gap:5px" title="On: each deck has a commander whose health is the score. Off: first to 5 kill points, with the older cards and no walls."><input type="checkbox" id="opt-commander"> Thane</label>
     <label class="label" style="display:flex;align-items:center;gap:5px" title="On: bots have their abilities (the bold line on a card). Off: plain bots."><input type="checkbox" id="opt-abilities"> Abilities</label>
-    
+
   </header>
   <div id="table" class="solo">
     <div class="panel" id="status"><h2 id="tray-h"></h2><div id="info"></div><div id="actions"></div><button id="new">New match</button></div>
@@ -1079,7 +1082,7 @@ const COMMAND = { name: 'Frontline: Commander', board: 'row', resource: 'pool', 
 /** Thane: the default game of the page (dist/thane.html). Frontline with a commander (called a Thane), the bots' abilities,
  *  two Barricades a deck (walls: 2 mana, 14 HP, no attack), and card effects that may take a Thane above 20.
  *  Pass the card pool as o.pool to build decks with the Thane set's gear and instants. */
-const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true };
+const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true, restSwap: 'R1' };
 /** One commander a colour. Everything it does is for, or counts, your bots of its colour. */
 const COMMANDERS = {
   'cinder-marshal': { name: 'Cinder Marshal', deck: 'Ember Host', color: 'red', small: (o) => `Each of their bots facing one of your red bots takes ${o.cmdN + 1}.`, big: (o) => `Each of their bots takes ${o.cmdN - 1}, and 1 more for every red bot you have.` },
@@ -1096,6 +1099,9 @@ const DEFAULTS = { cmdHealth: 20, toll: { common: 3, uncommon: 3, rare: 4, legen
   wall: 0 /* HP of the wall each player starts with: it cannot attack, is worth nothing, and a bot may be played in its place */, walls: 'middle' /* or 'all' three lanes */,
   defenders: 0 /* copies of the 1-mana Bulwark in a deck, in place of its weakest commons */, defHp: 12, defHit: 1,
   mulligan: null /* 'pick': once, before the first turn, put any cards of your hand under the deck and draw as many · 'redraw': once, shuffle the hand back and draw one fewer · 'cycle': once a turn discard a card to draw one */,
+  restSwap: null /* an id of ABIL with slot 'rest' (R1 = Muster): every commander may do that instead of resting, at no health */,
+  give: null /* [ids, ids]: further abilities of ABIL each player's commander has, for trials (docs/thane-ability-sims.md) */,
+  madeToll: { recruit: 0, sandbag: 0, champion: 1 } /* what a destroyed made fighter costs its owner's commander */,
   cardsPastCap: false /* may card effects take a commander above the cap? (the rest never does) */, pool: null /* the Thane card pool: gear and instants of a deck come from it (an array of cards) */,
   cmdCap: null /* the most health a commander can have: null = its start value, 0 = no limit */,
   trial: false /* the trial cards of docs/abilities-catalogue.md (TRIAL) take the place of half a deck's gear and instants */, trialOnly: null /* or a list of their ids */,
@@ -1339,8 +1345,9 @@ function newMatch(sides, version, opts = {}) {
     }
     return p;
   });
-  const m = { o, players, turn: o.opener ?? 0, actor: o.opener ?? 0, turnNo: 0, winner: null, how: '', ask: [], pending: null, log: [], played: {}, cycled: false, cmdUsed: false, energyDone: false, retreated: false, ended: false };
+  const m = { o, players, turn: o.opener ?? 0, actor: o.opener ?? 0, turnNo: 0, winner: null, how: '', ask: [], pending: null, log: [], played: {}, once: {}, cycled: false, cmdUsed: false, energyDone: false, retreated: false, ended: false };
   startTurn(m);
+  players.forEach((p, i) => { if (has(m, i, 'P9') && !p.bots[1]) { make(m, i, 'recruit', 1); } });
   // before the first turn: place a starter bot, then the one-time mulligan, the opener first
   const order = [m.turn, other(m.turn)];
   for (const i of order) if (players[i].starterCard) m.ask.push({ who: i, kind: 'place' });
@@ -1352,9 +1359,9 @@ function newMatch(sides, version, opts = {}) {
 function draw(m, i, n = 1) { const p = m.players[i]; let k = 0; for (; k < n && p.deck.length; k++) p.hand.push(p.deck.pop()); return k; }
 function startTurn(m) {
   const p = m.players[m.turn];
-  m.turnNo++; m.played = {}; m.cycled = false; m.cmdUsed = false; if (p.cmd) p.cmd.did = null; m.energyDone = false; m.retreated = false; m.ended = false;
+  m.turnNo++; m.played = {}; m.cycled = false; m.cmdUsed = false; m.once = {}; m.smallOnly = false; m.bigMade = false; if (p.cmd) p.cmd.did = null; m.energyDone = false; m.retreated = false; m.ended = false;
   if (m.o.resource === 'pool') { p.manaMax = Math.min(m.o.maxMana, p.manaMax + 1); p.mana = p.manaMax + (m.turnNo === 2 ? m.o.coin : 0); }
-  for (const b of botsOf(p)) { b.acted = false; b.arrived = false; b.tapped = false; }
+  for (const b of botsOf(p)) { b.acted = !!b.stun; b.stun = false; b.arrived = false; b.tapped = false; }
   for (const q of m.players) for (const b of botsOf(q)) b.blocked = false;
   if (m.turnNo > 1) draw(m, m.turn, m.o.draws + botsOf(p).filter((b) => abil(m, b, 'income')).length);   // the opener does not draw on the first turn
 }
@@ -1362,6 +1369,8 @@ function destroy(m, t, how = 'is destroyed') {
   const p = m.players[t.side], b = p.bots[t.slot], foe = m.players[other(t.side)];
   p.bots[t.slot] = null;
   if (b.wall) return say(m, t.side, '{their} wall comes down');
+  if (has(m, other(t.side), 'P1') && foe.cmd && !m.once.p1) { m.once.p1 = true; gain(m, other(t.side), 1, 'Blood Tithe', true); }
+  if (b.made) { const k = (m.o.madeToll || {})[b.made] || 0; if (k && p.cmd) { p.cmd.health -= k; p.cmd.tolls = (p.cmd.tolls || 0) + k; } return say(m, t.side, `{their} ${b.name} is destroyed${k ? `: {their} commander loses ${k} (health ${Math.max(0, p.cmd.health)})` : ''}`); }
   if (b.gear) p.scrap.push(b.gear);
   p.scrap.push(b.card);
   if (m.o.win === 'commander') { const k = Math.max(2, m.o.toll[b.rarity || 'common'] - gearN(b, 'salvage')); p.cmd.health -= k; p.cmd.tolls = (p.cmd.tolls || 0) + k; say(m, t.side, `{their} ${b.name} ${how}: {their} commander loses ${k} (health ${Math.max(0, p.cmd.health)})`); }
@@ -1409,11 +1418,11 @@ function targets(m, i, c) {
   const p = m.players[i], o = m.o;
   if (o.resource === 'pool' ? p.mana < cost(c, o) : m.played[c.kind]) return [];
   if (c.kind === 'bot') {
-    const open = p.bots.map((b, k) => (b && !b.wall ? -1 : k)).filter((k) => k >= 0);   // an empty lane, or one that holds only a wall
+    const open = p.bots.map((b, k) => (b && !b.wall && !b.made ? -1 : k)).filter((k) => k >= 0);   // an empty lane, or one that holds only a wall or a made fighter (the card takes its place)
     return (o.block === 'fixed' ? open : open.slice(0, 1)).map((slot) => ({ side: i, slot }));   // only where the place matters is it chosen
   }
   const tint = c.pool && c.color !== 'neutral' ? c.color : null, fam = c.kind === 'instant' ? c.effect.type : null;
-  if (c.kind === 'gear') return mine(m, i).filter((t) => !botAt(m, t).gear && !botAt(m, t).wall && (!tint || botAt(m, t).color === tint));
+  if (c.kind === 'gear') return mine(m, i).filter((t) => !botAt(m, t).gear && !botAt(m, t).wall && !botAt(m, t).made && (!tint || botAt(m, t).color === tint));
   if (tint && !ON_OWN.includes(fam) && !botsOf(p).some((b) => b.color === tint)) return [];   // a coloured instant needs its colour in play
   if (tint && ON_OWN.includes(fam)) return ownTargets(m, i, c).filter((t) => t === null ? false : botAt(m, t).color === tint);
   return ownTargets(m, i, c);
@@ -1440,7 +1449,7 @@ function ownTargets(m, i, c) {
     case 'overgrow': return mine(m, i).filter((t) => !botAt(m, t).wall);
     case 'sidestep': { const open = p.bots.map((b, k) => (b ? -1 : k)).filter((k) => k >= 0); return i !== m.turn ? [] : mine(m, i).flatMap((t) => open.map((to) => ({ ...t, to }))); }
     case 'shove': { const q = m.players[other(i)], open = q.bots.map((b, k) => (b ? -1 : k)).filter((k) => k >= 0); return i !== m.turn ? [] : theirs.flatMap((t) => open.map((to) => ({ ...t, to }))); }
-    case 'recall': return i !== m.turn ? [] : mine(m, i).filter((t) => !botAt(m, t).wall);
+    case 'recall': return i !== m.turn ? [] : mine(m, i).filter((t) => !botAt(m, t).wall && !botAt(m, t).made);
     case 'mend': return p.cmd && (o.cardsPastCap || p.cmd.health < capOf(o)) ? [null] : [];
     case 'surge': return i === m.turn ? mine(m, i).filter((t) => !botAt(m, t).acted && !botAt(m, t).arrived && !botAt(m, t).wall) : [];
     case 'twin': return i === m.turn && m.turnNo > 1 ? mine(m, i).filter((t) => botAt(m, t).acted && !botAt(m, t).arrived) : [];
@@ -1460,7 +1469,7 @@ function resume(m) {
   if (!b || b.card.uid !== at.uid) { m.pending = null; return say(m, at.side, 'the attack comes to nothing'); }
   if (m.o.block === 'choose') { m.ask.push({ who: oi, kind: 'block' }); return; }
   m.pending = null;
-  if (at.at === 'cmd') { const c = m.players[oi].cmd; c.health -= at.n; c.direct = (c.direct || 0) + at.n; say(m, oi, `{their} commander takes ${at.n} (health ${Math.max(0, c.health)})`); if (gearIs(b, 'leech')) gain(m, at.side, gearN(b, 'leech'), b.gear.name); return; }
+  if (at.at === 'cmd') { const c = m.players[oi].cmd; c.health -= at.n; c.direct = (c.direct || 0) + at.n; say(m, oi, `{their} commander takes ${at.n} (health ${Math.max(0, c.health)})`); if (gearIs(b, 'leech')) gain(m, at.side, gearN(b, 'leech'), b.gear.name); if (has(m, at.side, 'P2') && !m.once.p2) { m.once.p2 = true; gain(m, at.side, 1, 'Battle Fed', true); } return; }
   const foe = botAt(m, { side: oi, slot: at.at });
   if (!foe) return;
   const p = m.players[at.side], o = m.players[oi], had = leftOf(foe), small = at.kind === 'small';
@@ -1481,6 +1490,70 @@ function resume(m) {
     if (abil(m, b, 'raise')) { const k = p.scrap.findLastIndex((x) => x.kind === 'bot'); if (k >= 0) { const card = p.scrap.splice(k, 1)[0]; p.hand.push(card); say(m, at.side, `take{s} ${card.name} back from the scrap pile (${b.name})`); } }
   }
 }
+/** Made fighters: put into a lane by an ability, not cards. Colourless, no gear, and they go nowhere when destroyed. */
+/* A fighter card may be played into a lane that holds a made fighter: the made fighter leaves, at no cost. */
+const MADE = { recruit: { name: 'Recruit', max: 1, small: 1, ready: true }, sandbag: { name: 'Sandbag', max: 4, small: 0 }, champion: { name: 'Champion', max: 6, small: 3 } };
+let madeN = 0;
+function make(m, i, kind, slot) {
+  const p = m.players[i], d = MADE[kind];
+  p.bots[slot] = { made: kind, name: d.name, color: 'neutral', card: { uid: `made${i}-${m.turnNo}-${slot}-${++madeN}`, name: d.name, kind: 'made' }, max: d.max, small: d.small, big: 0, needBig: 99, two: false, dmg: 0, energy: 0, gear: null, shield: false, acted: !d.ready, arrived: !d.ready, tapped: false, blocked: false };
+  say(m, i, `{their} commander puts a ${d.name} in lane ${slot + 1}`);
+  // Double Stamp: a second one, if there is room
+  if (has(m, i, 'P10') && !m.stamping) { const k = p.bots.findIndex((b) => !b); if (k >= 0) { m.stamping = true; make(m, i, kind, k); m.stamping = false; } }
+}
+/** Does that player's commander have that trial ability? */
+const has = (m, i, id) => m.o.restSwap === id || !!(m.o.give && m.o.give[i] && m.o.give[i].includes(id));
+const emptyOf = (m, i) => m.players[i].bots.map((b, k) => (b ? -1 : k)).filter((k) => k >= 0).map((slot) => ({ side: i, slot }));
+const theirsOf = (m, i) => mine(m, other(i));
+/** The trial abilities (docs/thane-ability-options.md ids). slot: rest (free, instead of the rest), small / big (the usual
+ *  price), final (its own price), passive. t: its targets ([null] = none needed, [] = not now). run: what it does. */
+const ABIL = {
+  R1: { name: 'Muster', slot: 'rest', text: 'Put a Recruit (1 HP, hits 1) in an empty lane. It may attack this turn.', t: emptyOf, run: (m, i, t) => make(m, i, 'recruit', t.slot) },
+  R2: { name: 'Dig In', slot: 'rest', text: 'Put a Sandbag (4 HP, no attack) in an empty lane.', t: emptyOf, run: (m, i, t) => make(m, i, 'sandbag', t.slot) },
+  R5: { name: 'Drill', slot: 'rest', text: 'One of your bots gets +1 to its attacks this turn.', t: (m, i) => mine(m, i).filter((t) => { const b = botAt(m, t); return !b.acted && !b.arrived && !b.wall && (b.two || b.small > 0); }), run: (m, i, t) => { botAt(m, t).boost = (botAt(m, t).boost || 0) + 1; } },
+  R7: { name: 'Spark Tap', slot: 'rest', text: 'Gain 1 mana now.', t: () => [null], run: (m, i) => { m.players[i].mana += 1; } },
+  R8: { name: 'Patch', slot: 'rest', text: 'Repair 2 on one of your bots.', t: (m, i) => mine(m, i).filter((t) => botAt(m, t).dmg > 0), run: (m, i, t) => { const b = botAt(m, t); b.dmg = Math.max(0, b.dmg - 2); } },
+  R11: { name: 'Needle', slot: 'rest', text: '1 damage to one of their bots.', t: theirsOf, run: (m, i, t) => hurt(m, t, 1) },
+  R19: { name: 'Deep Rest', slot: 'rest', text: 'Gain 2 health (not above the start), but your bots may only make small attacks this turn.', t: (m, i) => (!m.bigMade && m.players[i].cmd.health < capOf(m.o) ? [null] : []), run: (m, i) => { gain(m, i, 2, 'Deep Rest', true); m.smallOnly = true; } },
+  S1: { name: 'Press Gang', slot: 'small', text: 'Put two Recruits in empty lanes.', t: (m, i) => (emptyOf(m, i).length ? [null] : []), run: (m, i) => { for (let k = 0; k < 2; k++) { const t = emptyOf(m, i)[0]; if (t) make(m, i, 'recruit', t.slot); } } },
+  S2: { name: 'Volley', slot: 'small', text: '2 damage to one bot, or 1 to their commander.', t: (m, i) => [...theirsOf(m, i), { side: other(i), slot: 'cmd' }], run: (m, i, t) => { if (t.slot === 'cmd') { const c = m.players[t.side].cmd; c.health -= 1; c.direct = (c.direct || 0) + 1; } else hurt(m, t, 2); } },
+  S4: { name: 'Hold Fast', slot: 'small', text: 'One of their bots cannot attack on its next turn.', t: (m, i) => theirsOf(m, i).filter((t) => !botAt(m, t).wall && !botAt(m, t).stun), run: (m, i, t) => { botAt(m, t).stun = true; } },
+  S7: { name: 'Field Promotion', slot: 'small', text: 'One of your bots gains +1 to its attacks and +1 HP for good.', t: (m, i) => mine(m, i).filter((t) => !botAt(m, t).wall), run: (m, i, t) => { const b = botAt(m, t); b.small += 1; if (b.two) b.big += 1; b.max += 1; } },
+  S15: { name: 'Overtime', slot: 'small', text: 'Gain 2 mana now.', t: () => [null], run: (m, i) => { m.players[i].mana += 2; } },
+  S24: { name: 'Siphon', slot: 'small', text: '1 damage to their commander; yours gains 1.', t: () => [null], run: (m, i) => { const c = m.players[other(i)].cmd; c.health -= 1; c.direct = (c.direct || 0) + 1; gain(m, i, 1, 'Siphon', true); } },
+  B1: { name: 'Champion', slot: 'big', text: 'Put a Champion (6 HP, hits 3) in an empty lane.', t: emptyOf, run: (m, i, t) => make(m, i, 'champion', t.slot) },
+  B2: { name: 'Execution', slot: 'big', text: 'Destroy one of their bots with 6 HP or less left.', t: (m, i) => theirsOf(m, i).filter((t) => leftOf(botAt(m, t)) <= 6), run: (m, i, t) => destroy(m, t) },
+  B4: { name: 'Barrage', slot: 'big', text: '2 damage to each of their bots.', t: (m, i) => (theirsOf(m, i).length ? [null] : []), run: (m, i) => { for (const t of theirsOf(m, i)) hurt(m, t, 2); } },
+  B10: { name: 'Reinforce', slot: 'big', text: 'Draw 3 cards.', t: (m, i) => (m.players[i].deck.length ? [null] : []), run: (m, i) => { draw(m, i, 3); } },
+  B12: { name: 'Mass Promotion', slot: 'big', text: 'Each of your bots gains +1 attack and +2 HP for good.', t: (m, i) => (mine(m, i).some((t) => !botAt(m, t).wall) ? [null] : []), run: (m, i) => { for (const b of botsOf(m.players[i])) if (!b.wall) { if (b.small > 0 || b.two) b.small += 1; if (b.two) b.big += 1; b.max += 2; } } },
+  B23: { name: 'Leech', slot: 'big', text: '3 damage to one bot; your commander gains what was dealt.', t: theirsOf, run: (m, i, t) => { const b = botAt(m, t), k = b.shield ? 0 : Math.min(3, leftOf(b)); hurt(m, t, 3); gain(m, i, k, 'Leech', true); } },
+  F1: { name: 'Last Muster', slot: 'final', cost: 6, text: 'Fill your empty lanes with Champions.', t: (m, i) => (emptyOf(m, i).length ? [null] : []), run: (m, i) => { for (const t of emptyOf(m, i)) if (!botAt(m, t)) make(m, i, 'champion', t.slot); } },
+  F2: { name: 'Clear the Field', slot: 'final', cost: 7, text: 'Destroy every bot of theirs. They pay the kill cost for one only.', t: (m, i) => (theirsOf(m, i).length ? [null] : []), run: (m, i) => { const c = m.players[other(i)].cmd; let first = true; for (const t of theirsOf(m, i)) { const h = c.health; destroy(m, t); if (!first) c.health = h; else if (c.health < h) first = false; } } },
+  P1: { name: 'Blood Tithe', slot: 'passive', text: 'Gain 1 health whenever one of their bots is destroyed (once a turn).' },
+  P2: { name: 'Battle Fed', slot: 'passive', text: 'Gain 1 health the first time each turn one of your bots hits their commander.' },
+  P5: { name: 'Drillmaster', slot: 'passive', text: 'Bots of your colour arrive with +1 HP.' },
+  P9: { name: 'Camp Follower', slot: 'passive', text: 'At the start of the match, put a Recruit in your middle lane.' },
+  P10: { name: 'Double Stamp', slot: 'passive', text: 'Whenever an ability makes a bot for you, it makes two if there is room.' },
+};
+/** What the commander's trial abilities offer now, as cmd actions (mode = 'x:' + id). */
+function extraOptions(m, i) {
+  const c = m.players[i].cmd, o = m.o, out = [], ids = [...new Set([o.restSwap, ...((o.give && o.give[i]) || [])].filter(Boolean))];
+  for (const id of ids) {
+    const a = ABIL[id]; if (!a.run) continue;
+    const price = a.slot === 'rest' ? 0 : a.slot === 'small' ? o.cmdSmall : a.slot === 'big' ? o.cmdBig : a.cost;
+    if (price && c.health <= price) continue;
+    for (const t of a.t(m, i)) out.push(t ? { type: 'cmd', mode: `x:${id}`, target: t } : { type: 'cmd', mode: `x:${id}` });
+  }
+  return out;
+}
+function extra(m, i, a) {
+  const c = m.players[i].cmd, o = m.o, id = a.mode.slice(2), ab = ABIL[id], price = ab.slot === 'rest' ? 0 : ab.slot === 'small' ? o.cmdSmall : ab.slot === 'big' ? o.cmdBig : ab.cost;
+  m.cmdUsed = true; c.did = ab.slot === 'rest' ? 'swap' : ab.slot; c.count[id] = (c.count[id] || 0) + 1;
+  c.health -= price;
+  const tb = a.target && a.target.slot !== 'cmd' ? botAt(m, a.target) : null;
+  say(m, i, `{their} commander ${c.name} ${price ? `spends ${price} health` : 'does not rest'}: ${ab.name}${tb ? ` on ${tb.name}` : a.target && a.target.slot === 'cmd' ? ' on the other commander' : ''}.`);
+  ab.run(m, i, a.target);
+}
 /** What the commander may do now: an ability it can pay for (never down to 0) and that would do something. */
 function cmdOptions(m, i) {
   const p = m.players[i], c = p.cmd, o = m.o, foe = m.players[other(i)], out = [];
@@ -1493,9 +1566,11 @@ function cmdOptions(m, i) {
   }[c.id];
   if (can.small && does[0]) { if (c.id === 'arc-regent') for (const k of slotsOf(foe)) out.push({ type: 'cmd', mode: 'small', target: { side: other(i), slot: k } }); else out.push({ type: 'cmd', mode: 'small' }); }
   if (can.big && does[1]) out.push({ type: 'cmd', mode: 'big' });
+  for (const x of extraOptions(m, i)) out.push(x);
   return out;
 }
 function command(m, i, a) {
+  if (a.mode.startsWith('x:')) return extra(m, i, a);
   const p = m.players[i], c = p.cmd, o = m.o, oi = other(i), foe = m.players[oi], n = o.cmdN, big = a.mode === 'big';
   m.cmdUsed = true; c.did = a.mode; c.count[a.mode]++;
   c.health -= big ? o.cmdBig : o.cmdSmall;
@@ -1531,7 +1606,7 @@ function options(m) {
   if (m.turnNo > 1) for (const slot of slotsOf(p)) {
     const b = p.bots[slot];
     if (b.wall || b.acted || (b.arrived && !gearIs(b, 'quick')) || (o.board === 'bench' && slot !== 0) || (!b.two && hitOf(b, 'small') <= 0)) continue;
-    for (const kind of ['small', 'big']) if (canPay(m, i, b, kind)) for (const at of reach(m, i, slot)) out.push(at === null ? { type: 'attack', slot, kind } : { type: 'attack', slot, kind, at });
+    for (const kind of m.smallOnly ? ['small'] : ['small', 'big']) if (canPay(m, i, b, kind)) for (const at of reach(m, i, slot)) out.push(at === null ? { type: 'attack', slot, kind } : { type: 'attack', slot, kind, at });
     if (o.direct && o.win === 'commander' && (!m.players[other(i)].bots[slot] || b.through) && canPay(m, i, b, 'small')) out.push({ type: 'attack', slot, kind: 'small', at: 'cmd' });   // an open lane: the commander itself
   }
   if (o.board === 'bench' && !m.retreated && p.bots[0] && (o.resource === 'attach' ? p.bots[0].energy >= o.retreat : p.mana >= o.retreat)) for (const to of slotsOf(p)) if (to > 0) out.push({ type: 'retreat', to });
@@ -1601,6 +1676,7 @@ function act(m, a) {
   if (a.type === 'attack') {
     const b = p.bots[a.slot], n = (a.at === 'cmd' ? Math.ceil(hitOf(b, 'small') * o.directX) : hitOf(b, a.kind)) + auras(p, 'banner', a.slot);
     b.acted = true;
+    if (a.kind === 'big') m.bigMade = true;
     if (o.resource === 'pool' && a.kind === 'big') p.mana -= needOf(b, 'big');
     if (o.block === 'choose') b.tapped = true;
     m.pending = { side: i, slot: a.slot, n, at: a.at, uid: b.card.uid, kind: a.kind };
@@ -1617,6 +1693,7 @@ function playCard(m, i, a) {
   if (i === m.turn) m.played[c.kind] = true;
   if (o.resource === 'pool') p.mana -= cost(c, o);
   if (c.kind === 'bot') { p.bots[t.slot] = fresh(c, o);   // (a wall in that lane is simply replaced)
+    if (p.cmd && has(m, i, 'P5') && c.color === p.cmd.color) p.bots[t.slot].max += 1;
     say(m, i, `play{s} ${c.name}`); if (abil(m, c, 'cache')) draw(m, i, c.ability.n); return; }
   if (c.trial) p.trialPlays[c.id] = (p.trialPlays[c.id] || 0) + 1;
   if (c.kind === 'gear') { if (c.pool) p.trialPlays[c.id] = (p.trialPlays[c.id] || 0) + 1; botAt(m, t).gear = c; return say(m, i, `fit{s} ${c.name} to ${botAt(m, t).name}`); }
@@ -1650,10 +1727,10 @@ function playCard(m, i, a) {
 }
 /** A copy of the match to try an action on (the log is left out). */
 function clone(m) {
-  return { ...m, log: [], ask: [...m.ask], played: { ...m.played }, pending: m.pending ? { ...m.pending } : null, players: m.players.map((p) => ({ ...p, deck: [...p.deck], hand: [...p.hand], scrap: [...p.scrap], bots: p.bots.map((b) => (b ? { ...b } : null)), auras: [...(p.auras || [])], trialPlays: { ...(p.trialPlays || {}) }, cmd: p.cmd ? { ...p.cmd, count: { ...p.cmd.count } } : undefined })) };
+  return { ...m, log: [], ask: [...m.ask], played: { ...m.played }, once: { ...(m.once || {}) }, pending: m.pending ? { ...m.pending } : null, players: m.players.map((p) => ({ ...p, deck: [...p.deck], hand: [...p.hand], scrap: [...p.scrap], bots: p.bots.map((b) => (b ? { ...b } : null)), auras: [...(p.auras || [])], trialPlays: { ...(p.trialPlays || {}) }, cmd: p.cmd ? { ...p.cmd, count: { ...p.cmd.count } } : undefined })) };
 }
 
-return { VERSIONS, COMMAND, THANE, COMMANDERS, commanderOf, DEFAULTS, RARITY, other, WORDS, speak, NEED, BOT_COST, BULWARK, shape, cost, usable, GEAR, EFFECT, POOL, poolText, gearText, describe, ABILITY, abilityText, botsOf, botAt, maxOf, leftOf, energyOf, needOf, hitOf, killsFor, canPay, reach, TRIAL, auras, capOf, buildDeck, newMatch, cmdOptions, options, apply, clone };
+return { VERSIONS, COMMAND, THANE, COMMANDERS, commanderOf, DEFAULTS, RARITY, other, WORDS, speak, NEED, BOT_COST, BULWARK, shape, cost, usable, GEAR, EFFECT, POOL, poolText, gearText, describe, ABILITY, abilityText, botsOf, botAt, maxOf, leftOf, energyOf, needOf, hitOf, killsFor, canPay, reach, TRIAL, auras, capOf, buildDeck, newMatch, MADE, has, ABIL, cmdOptions, options, apply, clone };
 })();
 const M_versions_bots = (() => {
 /**
@@ -1680,7 +1757,8 @@ function side(m, i) {
   for (const b of botsOf(p)) s += (b.wall ? -1.5 : 0) + 2 + (o.damage === 'reset' ? b.max : 0.8 * leftOf(b)) + 1.2 * hitOf(b, 'small') + (canPay(m, i, b, 'big') || o.resource === 'pool' ? 0.6 * hitOf(b, 'big') : 0) + 0.9 * Math.min(energyOf(b), 4) + (b.gear ? 1 : 0) + (b.shield ? 1.5 : 0);
   if (o.board === 'bench' && !p.bots[0] && botsOf(p).length) s -= 1;
   if (!botsOf(p).length) s -= o.win === 'kills' ? 12 : 4;
-  s += p.hand.reduce((t, c) => t + (c.kind === 'bot' ? 1.2 : 0.7), 0);
+  // cards in hand: worth less and less past seven (a hand that cannot be played out is not an asset)
+  s += p.hand.reduce((t, c) => t + (c.kind === 'bot' ? 1.2 : 0.7), 0) * Math.min(1, 7 / (p.hand.length || 1));
   // mana kept back for an answer in the other player's turn is worth something while there is an instant to spend it on
   if (o.resource === 'pool' && m.turn !== i) { const cheap = Math.min(...p.hand.filter((c) => c.kind === 'instant' && ['zap', 'shield', 'finish', 'shieldAll'].includes(c.effect.type)).map((c) => cost(c, o)), 99); if (p.mana >= cheap) s += 1.6; }
   return s;
@@ -5788,7 +5866,7 @@ const HOW = () => {
   if (v.defenders) L.push(`Each deck holds ${v.defenders} <b>Barricades</b>: walls with ${v.defHp} HP that cannot attack. A lane with a wall in it is not open.`);
   if (v.pool) L.push('<b>Gear and instants have colours.</b> A coloured gear fits only a bot of its colour; a coloured instant needs a bot of its colour (the card says which way). Colourless ones work for anyone and cost 1 more. Some instants last <b>until the end of the turn</b> and show as a tag on the bot. "Rare art" on a card is a rarer picture only.');
   if (v.abilities) L.push('Some bots have an <b>ability</b>, the bold line on the card (hover for it). Most commons have none.');
-  if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). <b>If you use neither, it rests by itself when you end your turn: +1 health</b>, never above ${v.cmdHealth}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
+  if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). ${v.restSwap ? `Or, for no health, <b>${V.ABIL[v.restSwap].name}</b>: ${V.ABIL[v.restSwap].text.replace(/^./, (x) => x.toLowerCase())} A Recruit is not a card: it takes no gear and costs you ${(v.madeToll || {}).recruit || 0} when it is destroyed. ` : ''}<b>If you use none of them, it rests by itself when you end your turn: +1 health</b>, never above ${v.cmdHealth}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
   L.push('Gear is fitted to a bot and stays; an instant happens once. Hover over anything (or press and hold on a phone) for what it means.');
   return L;
 };
@@ -5823,15 +5901,16 @@ function botHtml(b, side, slot, list) {
   const art = artOf(b), click = card ? () => act(card) : null;
   const abl = v.abilities && V.abilityText(b) ? `<small class="ab"${tip(`Ability of this bot: ${V.abilityText(b)}`)}>${esc(V.abilityText(b))}</small>` : '';
   const lines = b.defender && !V.hitOf(b, 'small') ? `<span${tip('A wall: it cannot attack. While it stands its lane is not open, so the bot opposite cannot hit your commander.')}>Cannot attack. Holds its lane.</span>` : !b.two ? `<span${tip(TIP.small(b))}>Attack ${V.hitOf(b, 'small')}</span>` : `<span${tip(TIP.small(b))}>Small: hit ${V.hitOf(b, 'small')}</span><br><span${tip(TIP.big(b))}>${esc(b.move.name)}: hit ${V.hitOf(b, 'big')} (${v.resource === 'attach' ? 'needs' : 'costs'} ${V.needOf(b, 'big')})</span>`;
-  return `<div class="card bot k-${b.color}${small ? ' mini' : ''}${b.shield ? ' shielded' : ''}${card ? ' glow go' : ''}${b.acted && side === m.turn ? ' done' : ''}" data-key="${b.card.uid}" ${click ? on(click) : ''}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}${b.shield ? '<div class="shield-fx"></div>' : ''}
-    <div class="name">${esc(b.name)}</div><div class="pw"${tip(TIP.left(b))}>${V.leftOf(b)}</div>${v.resource === 'attach' ? `<div class="en"${tip(TIP.energy(b))}><small>energy</small>${V.energyOf(b)}</div>` : ''}${v.win === 'kills' ? `<div class="kw${v.resource === 'attach' ? ' low' : ''}"${tip(TIP.kill(b, mine))}><small>kill</small>+${V.killsFor(m, b)}</div>` : v.win === 'commander' ? `<div class="kw toll"${tip(`When this ${b.rarity || 'common'} bot is destroyed, ${mine ? 'your' : "the opponent's"} commander loses ${v.toll[b.rarity || 'common']} health.`)}><small>cost</small>−${v.toll[b.rarity || 'common']}</div>` : ''}${tags ? `<div class="tags">${tags}</div>` : ''}
+  return `<div class="card bot k-${b.color}${b.made ? ' made' : ''}${small ? ' mini' : ''}${b.shield ? ' shielded' : ''}${card ? ' glow go' : ''}${b.acted && side === m.turn ? ' done' : ''}" data-key="${b.card.uid}" ${click ? on(click) : ''}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}${b.shield ? '<div class="shield-fx"></div>' : ''}
+    <div class="name">${esc(b.name)}</div><div class="pw"${tip(TIP.left(b))}>${V.leftOf(b)}</div>${v.resource === 'attach' ? `<div class="en"${tip(TIP.energy(b))}><small>energy</small>${V.energyOf(b)}</div>` : ''}${v.win === 'kills' ? `<div class="kw${v.resource === 'attach' ? ' low' : ''}"${tip(TIP.kill(b, mine))}><small>kill</small>+${V.killsFor(m, b)}</div>` : v.win === 'commander' && b.made ? `<div class="kw toll madetag"${tip(`Made by a commander's ability: not a card. It takes no gear and goes nowhere when destroyed; that costs ${mine ? 'your' : "the opponent's"} commander ${(v.madeToll || {})[b.made] || 0} health.`)}><small>made</small>−${(v.madeToll || {})[b.made] || 0}</div>` : v.win === 'commander' ? `<div class="kw toll"${tip(`When this ${b.rarity || 'common'} bot is destroyed, ${mine ? 'your' : "the opponent's"} commander loses ${v.toll[b.rarity || 'common']} health.`)}><small>cost</small>−${v.toll[b.rarity || 'common']}</div>` : ''}${tags ? `<div class="tags">${tags}</div>` : ''}
     ${moves ? `<div class="moves">${moves}${abl}</div>` : `<div class="txt">${lines}${abl ? `<br><b>${abl}</b>` : ''}</div>`}</div>`;
 }
 const tipBtn = (t) => ` title="${esc(t)}" data-tip="${esc(t)}"`;
 function slotHtml(side, slot, list) {
   const b = m.players[side].bots[slot], v = o(), bench = v.board === 'bench' && slot > 0;
-  const put = !b && sel !== null && list.find((a) => a.type === 'play' && a.hand === sel && a.target && a.target.side === side && a.target.slot === slot);
-  const inner = b ? botHtml(b, side, slot, list) : `<div class="hole${put ? ' glow go' : ''}" ${put ? on(() => act(put)) : tip(v.board === 'bench' ? (bench ? TIP.bench() : TIP.active()) : TIP.slot(slot))}>${put ? 'play it here' : v.board === 'bench' ? (bench ? 'bench' : 'no active bot') : 'empty'}</div>`;
+  const made = !b && cmdAim && side === ME ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.side === side && a.target.slot === slot) : null;   // an ability that puts a fighter into an empty lane
+  const put = made || (!b && sel !== null && list.find((a) => a.type === 'play' && a.hand === sel && a.target && a.target.side === side && a.target.slot === slot));
+  const inner = b ? botHtml(b, side, slot, list) : `<div class="hole${put ? ' glow go' : ''}" ${put ? on(() => act(put)) : tip(v.board === 'bench' ? (bench ? TIP.bench() : TIP.active()) : TIP.slot(slot))}>${made ? 'put it here' : put ? 'play it here' : v.board === 'bench' ? (bench ? 'bench' : 'no active bot') : 'empty'}</div>`;
   return `<div class="lane ${bench ? 'benchslot ' : ''}${side === ME ? 'mine' : 'theirs'}" data-key="slot-${side}-${slot}">${inner}</div>`;
 }
 function cardHtml(c, h, list) {
@@ -5852,17 +5931,19 @@ function scoreHtml(i) {
 function cmdHtml(i, list, hit = []) {
   const c = m.players[i].cmd, v = o(), mine = i === ME, used = m.cmdUsed && m.turn === i;
   const rows = [['small', `−${v.cmdSmall}`, 'Small', c.small(v)], ['big', `−${v.cmdBig}`, 'Big', c.big(v)]];
+  if (v.restSwap) rows.push([`x:${v.restSwap}`, '0', V.ABIL[v.restSwap].name, V.ABIL[v.restSwap].text]);   // instead of resting, at no health
   // the rest is not a button: a commander that used no ability gains 1 when its owner's turn ends
   const myTurn = m.turn === i && m.winner === null, restText = myTurn ? (used ? 'No rest this turn' : c.health >= v.cmdHealth ? 'At full health' : `Rests at the end of ${mine ? 'your' : 'its'} turn: +1 health`) : c.did === 'rest' ? 'Rested: +1 health' : c.did ? 'Used an ability: no rest' : c.health >= v.cmdHealth ? 'At full health' : 'Rests when it uses no ability';
   const rest = `<div class="line rest${!used && myTurn && c.health < v.cmdHealth ? ' on' : ''}"${tip(`A commander that uses no ability in its owner's turn rests when the turn ends: +1 health, never above ${v.cmdHealth}. Using the small or the big ability means no rest that turn.`)}><span class="price plus">+1</span>${restText}</div>`;
   const lines = rows.map(([mode, price, label, text]) => {
-    const body = `<span class="price">${price}</span><b>${label}:</b> ${esc(text)}`, t = `${label}: ${text} Costs ${mode === 'small' ? v.cmdSmall : v.cmdBig} of the commander's own health, which is the score, and the commander does not rest this turn. One ability a turn.`;
-    if (!mine) return `<div class="line${c.did === mode ? ' did' : ''}"${tip(t)}>${body}${c.did === mode ? ' <i>(its last turn)</i>' : ''}</div>`;
+    const body = `<span class="price${price === '0' ? ' zero' : ''}">${price}</span><b>${label}:</b> ${esc(text)}`, swap = mode.startsWith('x:'), t = swap ? `${label}: ${text} Costs no health, but the commander does not rest this turn. One ability a turn.` : `${label}: ${text} Costs ${mode === 'small' ? v.cmdSmall : v.cmdBig} of the commander's own health, which is the score, and the commander does not rest this turn. One ability a turn.`;
+    const didIt = c.did === mode || (swap && c.did === 'swap');
+    if (!mine) return `<div class="line${didIt ? ' did' : ''}"${tip(t)}>${body}${didIt ? ' <i>(its last turn)</i>' : ''}</div>`;
     const as = list.filter((a) => a.type === 'cmd' && a.mode === mode);
     // an ability that needs a target: one button; pressing it lights the bots it may pick, a click on one uses it
-    if (as.some((a) => a.target)) return `<button class="go${cmdAim === mode ? ' on' : ''}" ${on(() => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; render(); })}${tipBtn(`${t} Press, then click one of the glowing bots.`)}>${body}${cmdAim === mode ? ' <i>Pick a glowing bot (press again to cancel).</i>' : ''}</button>`;
-    const why = used ? 'Your commander has used an ability this turn' : m.actor !== ME || m.ask.length ? 'Not now' : c.health <= (mode === 'small' ? v.cmdSmall : v.cmdBig) ? 'It cannot spend its last health' : 'Nothing for it to do right now';
-    return as.length ? `<button class="go" ${on(() => act(as[0]))}${tipBtn(t)}>${body}</button>` : `<button disabled${tipBtn(`${why}. ${t}`)}>${body}${c.did === mode && used ? ' <i>(done)</i>' : ''}</button>`;
+    if (as.some((a) => a.target)) return `<button class="go${cmdAim === mode ? ' on' : ''}" ${on(() => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; render(); })}${tipBtn(`${t} Press, then click one of the glowing ${swap ? 'lanes' : 'bots'}.`)}>${body}${cmdAim === mode ? ` <i>Pick a glowing ${swap ? 'lane' : 'bot'} (press again to cancel).</i>` : ''}</button>`;
+    const why = used ? 'Your commander has used an ability this turn' : m.actor !== ME || m.ask.length ? 'Not now' : !swap && c.health <= (mode === 'small' ? v.cmdSmall : v.cmdBig) ? 'It cannot spend its last health' : swap ? 'No empty lane' : 'Nothing for it to do right now';
+    return as.length ? `<button class="go" ${on(() => act(as[0]))}${tipBtn(t)}>${body}</button>` : `<button disabled${tipBtn(`${why}. ${t}`)}>${body}${didIt && used ? ' <i>(done)</i>' : ''}</button>`;
   }).join('');
   const target = hit.length ? `<button class="go primary" ${hit.length === 1 ? on(() => act(hit[0])) : 'disabled'}${tipBtn('One of your bots has nothing opposite it: its small attack (gear counts) may hit this commander instead of a bot.')}>${hit.length === 1 ? `Hit it for ${V.hitOf(m.players[ME].bots[hit[0].slot], 'small')} with ${esc(m.players[ME].bots[hit[0].slot].name)}` : 'Open lanes: use the buttons on your bots'}</button>` : '';
   return `<div class="head"><div class="who">${mine ? 'Your commander' : "The opponent's commander"}</div><div class="nm">${esc(c.name)}</div><div class="dk"${tip(`The commander names the deck and sets its colour: ${fac(c.color).name}.`)}>${esc(c.deck)} · <b>${esc(fac(c.color).name)}</b></div></div>
