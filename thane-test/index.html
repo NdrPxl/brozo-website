@@ -171,7 +171,7 @@ details p { margin: 6px 0; }
 #table.solo .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
 .card .tags span.turn { background: var(--gold); color: #fff; font-style: italic; }
 .card.rareart { box-shadow: 0 0 0 2px #f2c230, 0 0 10px #f2c230; } .card.rareart .art { filter: saturate(1.5) hue-rotate(-18deg) contrast(1.08); } .card .kind .ra { color: #b8860b; }
-.nocmd { display: none; } .cmdbox.glow { box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--gold); }
+.nocmd { display: none; } .cmdbox.glow { box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--gold); } .cmdbox.hitme { cursor: pointer; }
 #table.solo h2 { font: 700 1rem var(--display); margin: 0 0 4px; } #status #new { margin-top: 8px; }
 #table.solo #log { max-height: 260px; }
 /* no --k here: it would override the k-<colour> class above and every commander would be grey */
@@ -206,6 +206,15 @@ details p { margin: 6px 0; }
   #table.solo #lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); order: 0; }
   .cmdbox .hp b { font-size: 2.2rem; }
 }
+.card.trimmed { opacity: .45; outline: 3px solid var(--foe); }
+/* a pile to look through: the scrap piles today */
+.pilebtn { font-size: inherit; padding: 1px 8px; }
+.pileveil { position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .55); display: grid; place-items: center; padding: 12px; }
+.pilepanel { background: var(--panel); color: var(--ink); border: 2px solid var(--gold); border-radius: 12px; width: min(520px, 100%); max-height: min(80vh, 640px); display: flex; flex-direction: column; }
+.pilehead { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); } .pilehead button { margin-left: auto; }
+.pilelist { overflow-y: auto; padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+.pilerow { --k: #8a8f98; display: flex; align-items: baseline; gap: 8px; text-align: left; font-size: .9rem; padding: 4px 8px; border: 1px solid var(--line); border-left: 6px solid var(--k); border-radius: 6px; background: color-mix(in srgb, var(--k) 10%, var(--panel)); }
+.pilerow span { color: var(--muted); font-size: .78rem; margin-left: auto; text-align: right; } .pilerow i { display: none; }
 </style>
 <main>
   <header>
@@ -224,6 +233,7 @@ details p { margin: 6px 0; }
     <div class="panel cmdbox" id="cmd-1"></div>
     <div class="panel" id="feed"><span class="label">What happened</span><div id="log"></div></div>
   </div>
+  <div id="pileview"></div>
   <div class="label" style="margin-top:10px">Your hand</div>
   <section id="hand"></section>
   <details open>
@@ -1092,7 +1102,8 @@ const COMMAND = { name: 'Frontline: Commander', board: 'row', resource: 'pool', 
  *  Pass the card pool as o.pool to build decks with the Thane set's gear and instants. */
 const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true, restSwap: 'own',
   // match length (2026-11-23): a Thane rests only while it is below 10 health, and a destroyed fighter costs 1 more
-  restBelow: 10, toll: { common: 4, uncommon: 4, rare: 5, legendary: 6 } };
+  restBelow: 10, toll: { common: 4, uncommon: 4, rare: 5, legendary: 6 }, handMax: 8,
+  mulligan: 'cycle' /* once a turn you may discard a card to draw one, as in the Charge game */ };
 /** One commander a colour. Everything it does is for, or counts, your bots of its colour. */
 const COMMANDERS = {
   'cinder-marshal': { name: 'Cinder Marshal', deck: 'Ember Host', color: 'red', small: (o) => `Each of their bots facing one of your red bots takes ${o.cmdN + 1}.`, big: (o) => `Each of their bots takes ${o.cmdN - 1}, and 1 more for every red bot you have.` },
@@ -1132,6 +1143,7 @@ const DEFAULTS = { cmdHealth: 20, toll: { common: 3, uncommon: 3, rare: 4, legen
   restBelow: 0 /* the rest only happens while the commander has less than this much health (0 = any) */, restEvery: 1 /* 2 = the rest only on every other turn of its owner */,
   restUnhurt: false /* no rest on a turn after one of your fighters was destroyed */, directPlus: 0 /* added to a hit on a commander through an open lane */,
   pressureFrom: 0 /* from this turn of each player on, its commander loses 1 at the start of its turn (0 = never) */, pressureStep: 0 /* and 1 more every this many turns after that */,
+  handMax: 0 /* the most cards a player may hold when their own turn ends; over it they choose what to discard (0 = no limit). An ability that changes it (options doc O3, Open Books) would raise this per player: handMaxOf() */,
   restSwap: null /* what a commander may do instead of resting, at no health: 'own' = each commander's own (COMMANDERS[id].rest; it may have none), an id of ABIL with slot 'rest' = that one for everyone (for sims), null = none */,
   give: null /* [ids, ids]: further abilities of ABIL each player's commander has, for trials (docs/thane-ability-sims.md) */,
   recruitOpen: false /* a lane that holds only a Recruit still counts as open: the fighter opposite may hit the commander */,
@@ -1705,6 +1717,7 @@ function options(m) {
   if (m.ask.length) {
     const q = m.ask[0], p = m.players[q.who];
     if (q.kind === 'respond') return [{ type: 'pass' }, ...answers(m, q.who)];
+    if (q.kind === 'trim') return p.hand.map((_, h) => ({ type: 'trim', hand: h }));
     if (q.kind === 'place') return [0, 1, 2].filter((k) => !p.bots[k] || p.bots[k].wall).map((slot) => ({ type: 'place', slot }));
     if (q.kind === 'pick') return [{ type: 'keep' }, ...p.hand.map((_, h) => ({ type: 'mull', hand: h }))];
     if (q.kind === 'redraw') return [{ type: 'keep' }, { type: 'redraw' }];
@@ -1735,11 +1748,14 @@ function apply(m, a, checked = true) {
   act(m, a);
   settle(m);
   if (m.winner !== null) { m.ask = []; m.actor = m.turn; return; }
+  // the hand limit: checked when the owner's own turn ends; they discard down to it, one card at a time
+  if (!m.ask.length && m.ended && handMaxOf(m, m.turn) && m.players[m.turn].hand.length > handMaxOf(m, m.turn)) m.ask.push({ who: m.turn, kind: 'trim' });
   if (!m.ask.length && m.ended) pass(m);
   m.actor = m.ask.length ? m.ask[0].who : m.turn;
 }
 function act(m, a) {
   const o = m.o;
+  if (a.type === 'trim') { const q = m.ask.shift(), p = m.players[q.who], c = p.hand.splice(a.hand, 1)[0]; p.scrap.push(c); p.trimmed = (p.trimmed || 0) + 1; return say(m, q.who, `discard{s} ${c.name}: more than ${handMaxOf(m, q.who)} cards in hand`); }
   if (a.type === 'place') { const q = m.ask.shift(), p = m.players[q.who]; p.bots[a.slot] = fresh(p.starterCard, o); p.bots[a.slot].acted = false; p.bots[a.slot].arrived = false; p.starterCard = null; return say(m, q.who, `start{s} with ${p.bots[a.slot].name} in lane ${a.slot + 1}`); }
   if (a.type === 'mull') { const q = m.ask[0], p = m.players[q.who]; p.deck.unshift(p.hand.splice(a.hand, 1)[0]); q.back++; return; }
   if (a.type === 'keep') { const q = m.ask.shift(); if (q.back) { draw(m, q.who, q.back); say(m, q.who, `put{s} ${q.back} ${q.back === 1 ? 'card' : 'cards'} under the deck and draw{s} as many`); } return; }
@@ -1841,12 +1857,14 @@ function playCard(m, i, a) {
   else if (e.type === 'draw') draw(m, i, e.n);
   else if (e.type === 'switch') { const b = p.bots[0]; p.bots[0] = p.bots[t.slot]; p.bots[t.slot] = b; say(m, i, `{their} ${p.bots[0].name} becomes the active bot`); }
 }
+/** The hand limit of that player (0 = none). The place for an ability that changes it. */
+const handMaxOf = (m, i) => m.o.handMax || 0;   // eslint-disable-line no-unused-vars
 /** A copy of the match to try an action on (the log is left out). */
 function clone(m) {
   return { ...m, log: [], ask: [...m.ask], played: { ...m.played }, once: { ...(m.once || {}) }, pending: m.pending ? { ...m.pending } : null, players: m.players.map((p) => ({ ...p, deck: [...p.deck], hand: [...p.hand], scrap: [...p.scrap], bots: p.bots.map((b) => (b ? { ...b } : null)), auras: [...(p.auras || [])], trialPlays: { ...(p.trialPlays || {}) }, cmd: p.cmd ? { ...p.cmd, count: { ...p.cmd.count } } : undefined })) };
 }
 
-return { VERSIONS, COMMAND, THANE, COMMANDERS, commanderOf, DEFAULTS, RARITY, other, WORDS, speak, NEED, BOT_COST, BULWARK, shape, cost, usable, GEAR, EFFECT, POOL, poolText, gearText, describe, ABILITY, abilityText, botsOf, botAt, maxOf, leftOf, energyOf, needOf, hitOf, killsFor, canPay, reach, TRIAL, auras, capOf, buildDeck, newMatch, priceIn, MADE, swapOf, has, ABIL, cmdOptions, options, apply, clone };
+return { VERSIONS, COMMAND, THANE, COMMANDERS, commanderOf, DEFAULTS, RARITY, other, WORDS, speak, NEED, BOT_COST, BULWARK, shape, cost, usable, GEAR, EFFECT, POOL, poolText, gearText, describe, ABILITY, abilityText, botsOf, botAt, maxOf, leftOf, energyOf, needOf, hitOf, killsFor, canPay, reach, TRIAL, auras, capOf, buildDeck, newMatch, priceIn, MADE, swapOf, has, ABIL, cmdOptions, options, apply, handMaxOf, clone };
 })();
 const M_versions_bots = (() => {
 /**
@@ -1928,6 +1946,11 @@ const greedyBefore = (m) => opening(m) || options(m).map((a) => { const c = clon
  *  down to two; redraw: only a slow hand; cycle: when no bot in hand can be paid for, throw the dearest card. */
 function opening(m) {
   const q = m.ask[0], p = m.players[m.actor], o = m.o, cheap = p.hand.some((c) => c.kind === 'bot' && cost(c, o) <= 2);
+  if (q && q.kind === 'trim') {   // over the hand limit: throw the least useful card (a fighter it can pay for is kept longest, the dearest card it cannot pay for goes first)
+    const keep = (c) => (c.kind === 'bot' ? 2 : 1) + (cost(c, o) <= p.manaMax + 1 ? 1 : 0) - 0.05 * cost(c, o); let h = 0;
+    p.hand.forEach((c, k) => { if (keep(c) < keep(p.hand[h])) h = k; });
+    return { type: 'trim', hand: h };
+  }
   if (q && q.kind === 'redraw') return { type: cheap ? 'keep' : 'redraw' };
   if (q && q.kind === 'pick') {
     const h = p.hand.findIndex((c) => (c.kind === 'bot' && cost(c, o) >= 4) || (!cheap && c.kind !== 'bot' && p.hand.filter((x) => x.kind !== 'bot').length > 2));
@@ -5950,7 +5973,8 @@ function reword(root = document.body) {
   for (let n; (n = w.nextNode());) { if (n.parentNode.closest('script, style, .name, .nm')) continue; const t = V.speak(n.nodeValue); if (t !== n.nodeValue) n.nodeValue = t; }
   root.querySelectorAll('[title], [data-tip], [aria-label]').forEach((e) => { for (const a of ['title', 'data-tip', 'aria-label']) if (e.hasAttribute(a)) { const t = V.speak(e.getAttribute(a)); if (t !== e.getAttribute(a)) e.setAttribute(a, t); } });
 }
-let m, ver = V.VERSIONS[qs.get('v')] ? qs.get('v') : 'arena', sel = null, cmdAim = null /* the commander ability whose target is being chosen */, atkAim = null /* { slot, kind }: the attack of mine whose target is being chosen */, busy = false, log = [], seen = 0, reg = [], fresh = 0;
+let m, ver = V.VERSIONS[qs.get('v')] ? qs.get('v') : 'arena', sel = null, cmdAim = null /* the commander ability whose target is being chosen */, atkAim = null /* { slot, kind }: the attack of mine whose target is being chosen */, busy = false, log = [], seen = 0, reg = [], fresh = 0,
+  trim = null /* a Set of hand-card uids marked to discard at the end of my turn, while I hold more than the hand limit */, thaneAim = false /* choosing which of several fighters hits their Thane */, pile = null /* whose scrap pile is open */;
 const settings = { me: 'random', bot: 'random' };
 const on = (fn) => { reg.push(fn); return `data-on="${reg.length - 1}"`; };
 document.addEventListener('click', (e) => { const el = e.target.closest('[data-on]'); if (el && reg[el.dataset.on]) { e.stopPropagation(); reg[el.dataset.on](e); } });
@@ -6008,6 +6032,8 @@ const HOW = () => {
   if (v.pool) L.push('<b>Gear and instants have colours.</b> A coloured gear fits only a bot of its colour; a coloured instant needs a bot of its colour (the card says which way). Colourless ones work for anyone and cost 1 more. Some instants last <b>until the end of the turn</b> and show as a tag on the bot. "Rare art" on a card is a rarer picture only.');
   if (v.abilities) L.push('Some bots have an <b>ability</b>, the bold line on the card (hover for it). Most commons have none.');
   if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). ${v.restSwap ? `Some commanders also have a <b>rest swap</b>, the third line in the box with a 0: at no health, it does that instead of resting (yours: ${V.swapOf(m, ME) ? `<b>${V.ABIL[V.swapOf(m, ME)].name}</b>, ${V.ABIL[V.swapOf(m, ME)].text.replace(/^./, (x) => x.toLowerCase())}` : 'none'}). A Recruit or a Sandbag an ability puts in a lane is not a card: it takes no gear, a card may be played in its place, and it costs nothing when it is destroyed. ` : ''}<b>If you use none of them, it rests by itself when you end your turn: +1 health</b>${v.restBelow ? `, but only while it has less than ${v.restBelow} health` : `, never above ${v.cmdHealth}`}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
+  if (v.mulligan === 'cycle') L.push('<b>Once a turn you may discard a card to draw one</b>: click the card, then "Discard it, draw a card".');
+  if (v.handMax) L.push(`<b>You may hold ${v.handMax} cards when your turn ends.</b> With more, End turn first asks which to discard. Click "scrap" in either status line to look through that scrap pile.`);
   L.push('Gear is fitted to a bot and stays; an instant happens once. Hover over anything (or press and hold on a phone) for what it means.');
   return L;
 };
@@ -6019,6 +6045,7 @@ const asked = () => (m.ask.length ? m.ask[0] : null);
 function botHtml(b, side, slot, list) {
   const mine = side === ME, v = o(), q = asked(), small = slot > 0 && v.board === 'bench';
   const card = atkAim && side !== ME ? list.find((a) => a.type === 'attack' && a.slot === atkAim.slot && a.kind === atkAim.kind && a.at === slot) : cmdAim ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.side === side && a.target.slot === slot) : sel !== null ? list.find((a) => a.type === 'play' && a.hand === sel && a.target && a.target.side === side && a.target.slot === slot) : null;
+  const viaThane = thaneAim && mine ? list.find((a) => a.type === 'attack' && a.slot === slot && a.at === 'cmd') : null;   // I clicked their Thane: which of my fighters hits it?
   let moves = '';
   const btn = (label, a, t, cls = '') => `<button class="go ${cls}" ${on(() => act(a))}${tipBtn(t)}>${label}</button>`;
   if (mine && list.length) {
@@ -6039,10 +6066,10 @@ function botHtml(b, side, slot, list) {
     }
   }
   const tags = [b.arrived && side === m.turn ? '<span>just arrived</span>' : b.acted && side === m.turn ? '<span>done</span>' : '', b.tapped && v.block === 'choose' && side !== m.turn ? `<span class="rest"${tip(TIP.tapped())}>cannot block</span>` : '', b.shield ? `<span class="sh"${tip(TIP.shield())}>shield</span>` : '', b.boost ? `<span class="turn"${tip(`Until the end of this turn it hits ${b.boost} harder.`)}>+${b.boost} this turn</span>` : '', b.through ? `<span class="turn"${tip('Until the end of this turn its small attack may hit their commander past the bot opposite.')}>overpass</span>` : '', b.marked ? `<span class="turn"${tip(`Until the end of this turn it takes ${b.marked} more from every hit.`)}>marked +${b.marked}</span>` : '', b.gear ? `<span${tip(TIP.gear(b.gear))}>${esc(b.gear.name)}</span>` : ''].join('');
-  const art = artOf(b), click = card ? () => act(card) : null;
+  const art = artOf(b), click = card ? () => act(card) : viaThane ? () => act(viaThane) : null;
   const abl = v.abilities && V.abilityText(b) ? `<small class="ab"${tip(`Ability of this bot: ${V.abilityText(b)}`)}>${esc(V.abilityText(b))}</small>` : '';
   const lines = b.defender && !V.hitOf(b, 'small') ? `<span${tip('A wall: it cannot attack. While it stands its lane is not open, so the bot opposite cannot hit your commander.')}>Cannot attack. Holds its lane.</span>` : !b.two ? `<span${tip(TIP.small(b))}>Attack ${V.hitOf(b, 'small')}</span>` : `<span${tip(TIP.small(b))}>Small: hit ${V.hitOf(b, 'small')}</span><br><span${tip(TIP.big(b))}>${esc(b.move.name)}: hit ${V.hitOf(b, 'big')} (${v.resource === 'attach' ? 'needs' : 'costs'} ${V.needOf(b, 'big')})</span>`;
-  return `<div class="card bot k-${b.color}${b.made ? ' made' : ''}${small ? ' mini' : ''}${b.shield ? ' shielded' : ''}${card ? ' glow go' : ''}${b.acted && side === m.turn ? ' done' : ''}" data-key="${b.card.uid}" ${click ? on(click) : ''}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}${b.shield ? '<div class="shield-fx"></div>' : ''}
+  return `<div class="card bot k-${b.color}${b.made ? ' made' : ''}${small ? ' mini' : ''}${b.shield ? ' shielded' : ''}${card || viaThane ? ' glow go' : ''}${b.acted && side === m.turn ? ' done' : ''}" data-key="${b.card.uid}" ${click ? on(click) : ''}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}${b.shield ? '<div class="shield-fx"></div>' : ''}
     <div class="name">${esc(b.name)}</div><div class="pw"${tip(TIP.left(b))}>${V.leftOf(b)}</div>${v.resource === 'attach' ? `<div class="en"${tip(TIP.energy(b))}><small>energy</small>${V.energyOf(b)}</div>` : ''}${v.win === 'kills' ? `<div class="kw${v.resource === 'attach' ? ' low' : ''}"${tip(TIP.kill(b, mine))}><small>kill</small>+${V.killsFor(m, b)}</div>` : v.win === 'commander' && b.made ? `<div class="kw toll madetag"${tip(`Made by a commander's ability: not a card. It takes no gear and goes nowhere when destroyed; that costs ${mine ? 'your' : "the opponent's"} commander ${(v.madeToll || {})[b.made] || 0} health.`)}><small>made</small>−${(v.madeToll || {})[b.made] || 0}</div>` : v.win === 'commander' ? `<div class="kw toll"${tip(`When this ${b.rarity || 'common'} bot is destroyed, ${mine ? 'your' : "the opponent's"} commander loses ${v.toll[b.rarity || 'common']} health.`)}><small>cost</small>−${v.toll[b.rarity || 'common']}</div>` : ''}${tags ? `<div class="tags">${tags}</div>` : ''}
     ${moves ? `<div class="moves">${moves}${abl}</div>` : `<div class="txt">${lines}${abl ? `<br><b>${abl}</b>` : ''}</div>`}</div>`;
 }
@@ -6056,8 +6083,9 @@ function slotHtml(side, slot, list) {
 }
 function cardHtml(c, h, list) {
   const art = artOf(c), can = list.some((a) => a.type === 'play' && a.hand === h), v = o(), plain = list.find((a) => a.type === 'play' && a.hand === h && !a.target);
-  const click = () => { if (plain && sel === h) return act(plain); sel = sel === h ? null : h; cmdAim = null; atkAim = null; render(); };
-  return `<div class="card k-${c.color} ${c.rareArt ? 'rareart' : ''} ${v.resource === 'pool' ? 'costed' : ''} ${sel === h ? 'sel' : ''} ${can || !list.length ? '' : 'dim'} ${can ? 'go' : ''}" data-key="${c.uid}" ${on(click)}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}
+  const asking = asked() && asked().kind === 'trim' && asked().who === ME;
+  const click = trim ? () => markTrim(c.uid) : asking ? () => act({ type: 'trim', hand: h }) : () => { if (plain && sel === h) return act(plain); sel = sel === h ? null : h; cmdAim = null; atkAim = null; thaneAim = false; render(); };
+  return `<div class="card k-${c.color} ${c.rareArt ? 'rareart' : ''} ${v.resource === 'pool' ? 'costed' : ''} ${trim ? (trim.has(c.uid) ? 'sel trimmed go' : 'glow go') : asking ? 'glow go' : `${sel === h ? 'sel' : ''} ${can || !list.length ? '' : 'dim'} ${can ? 'go' : ''}`}" data-key="${c.uid}" ${on(click)}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}
     ${v.resource === 'pool' ? `<div class="cost"${tip(TIP.cost(c))}>${V.cost(c, v)}</div>` : ''}<div class="name">${esc(c.name)}</div>${c.kind === 'bot' ? `<div class="pw"${tip(`${life()} ${V.shape(c, v).max}`)}>${V.shape(c, v).max}</div>` : ''}<div class="kind">${c.kind}${c.kind === 'bot' ? ` · ${c.rarity || 'common'}` : c.pool ? ` · ${c.rarity}` : ''}${c.rareArt ? ` · <b class="ra"${tip('Rare art: a rarer picture of the same card. It plays exactly the same.')}>rare art</b>` : ''}</div>
     <div class="txt">${V.describe(c, v).filter((t) => !/^Costs/.test(t)).map(esc).join('<br>')}</div></div>`;
 }
@@ -6066,7 +6094,7 @@ function scoreHtml(i) {
   const score = v.win === 'commander' ? '' : v.win === 'health' ? `<span class="stat hp" data-key="hp-${i}"${tip(TIP.health(i === ME ? 'Your' : "The opponent's"))}><b>${Math.max(0, p.health)}</b> health</span>`
     : `<span class="kills" data-key="hp-${i}"${tip(TIP.kills(i === ME ? 'You have' : 'The opponent has', p.kills))}><b>${Math.min(p.kills, v.target)}</b><em>/ ${v.target}</em> kills</span><span class="pips">${Array.from({ length: v.target }, (_, k) => `<i class="${k < p.kills ? 'on' : ''}"></i>`).join('')}</span>`;
   const mana = v.resource === 'pool' ? `<span class="stat mana"${tip(TIP.mana(p, i === ME))}><b>${p.mana}</b>/ ${p.manaMax} mana</span>` : '';
-  return `<b>${who}</b>${score}${mana}<span class="deck"><span${tip(TIP.deck(p.deck.length))}>deck ${p.deck.length}</span>${i === BOT ? ` · hand ${p.hand.length}` : ''} · scrap ${p.scrap.length}</span>`;
+  return `<b>${who}</b>${score}${mana}<span class="deck"><span${tip(TIP.deck(p.deck.length))}>deck ${p.deck.length}</span>${i === BOT ? ` · hand ${p.hand.length}` : ''} · <button class="pilebtn" ${on(() => { pile = pile === i ? null : i; render(); })}${tipBtn(`${i === ME ? 'Your' : "The opponent's"} scrap pile: every card played, discarded or destroyed. Click to look through it.`)}>scrap ${p.scrap.length}</button></span>`;
 }
 /** A commander's box: name, deck, health as the big number, and its three lines. Mine are buttons; theirs shows what it did. */
 function cmdHtml(i, list, hit = []) {
@@ -6090,11 +6118,28 @@ function cmdHtml(i, list, hit = []) {
   const aimed = !mine && cmdAim ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.slot === 'cmd') : null;   // an ability of mine that may be aimed at this commander
   const passive = c.passive ? `<div class="line passive"${tip(`${V.ABIL[c.passive].name}, always on: ${V.ABIL[c.passive].text}`)}><span class="price zero">◆</span><b>${esc(V.ABIL[c.passive].name)}:</b> ${esc(V.ABIL[c.passive].text)}</div>` : '';
   const pic = typeof ASSETS !== 'undefined' && ASSETS.rigs[`thane-${c.id}`], art = pic ? `<div class="cmdart" style="background-image:url(${pic})"></div><div class="cmdveil"></div>` : '';
-  const target = hit.length ? `<button class="go primary" ${hit.length === 1 ? on(() => act(hit[0])) : 'disabled'}${tipBtn('One of your bots has nothing opposite it: its small attack (gear counts) may hit this commander instead of a bot.')}>${hit.length === 1 ? `Hit it for ${V.hitOf(m.players[ME].bots[hit[0].slot], 'small')} with ${esc(m.players[ME].bots[hit[0].slot].name)}` : 'Open lanes: use the buttons on your bots'}</button>` : '';
+  const target = hit.length === 1 ? `<button class="go primary" ${on(() => act(hit[0]))}${tipBtn('One of your bots has nothing opposite it: its small attack (gear counts) may hit this commander instead of a bot.')}>${hit.length === 1 ? `Hit it for ${V.hitOf(m.players[ME].bots[hit[0].slot], 'small')} with ${esc(m.players[ME].bots[hit[0].slot].name)}` : ''}</button>` : '';
+  const many = hit.length > 1 ? `<button class="go primary${thaneAim ? ' on' : ''}" ${on(() => { thaneAim = !thaneAim; sel = null; cmdAim = null; atkAim = null; render(); })}${tipBtn('Several of your bots have an open lane. Press, then click the glowing bot that should hit this commander.')}>${thaneAim ? 'Click the glowing bot that should hit it (press again to cancel)' : `${hit.length} of your bots can hit it: choose one`}</button>` : '';
   return `${art}<div class="head"><div class="who">${mine ? 'Your commander' : "The opponent's commander"}</div><div class="nm">${esc(c.name)}</div><div class="dk"${tip(`The commander names the deck and sets its colour: ${fac(c.color).name}.`)}>${esc(c.deck)} · <b>${esc(fac(c.color).name)}</b></div></div>
     <div class="hp"${tip(`Commander health: ${mine ? 'your' : "the opponent's"} score. It starts at ${v.cmdHealth}; each destroyed bot of ${mine ? 'yours' : 'its'} takes ${v.toll.common} to ${v.toll.legendary} off it; at 0 ${mine ? 'you lose' : 'you win'}. Resting never takes it above ${v.cmdHealth}${v.cardsPastCap ? '; cards can' : ''}.`)}><b data-key="hp-${i}">${Math.max(0, c.health)}</b><span>${c.health > v.cmdHealth ? `health, above its ${v.cmdHealth}` : `health of ${v.cmdHealth}`}</span></div><div class="hpbar"><i style="width:${Math.max(0, Math.min(100, (100 * c.health) / v.cmdHealth))}%"></i></div>
-    <div class="acts">${aimed ? `<button class="go primary" ${on(() => act(aimed))}>Use it on this commander</button>` : ''}${target}${lines}${passive}${rest}</div>`;
+    <div class="acts">${aimed ? `<button class="go primary" ${on(() => act(aimed))}>Use it on this commander</button>` : ''}${target}${many}${lines}${passive}${rest}</div>`;
 }
+/** Marking cards to give up at the end of my turn; when enough are marked the turn ends and they are discarded. */
+function markTrim(uid) {
+  if (!trim || busy) return;
+  if (trim.has(uid)) trim.delete(uid); else trim.add(uid);
+  const need = m.players[ME].hand.length - V.handMaxOf(m, ME);
+  if (trim.size < need) return render();
+  const uids = [...trim]; trim = null;
+  (async () => { await step({ type: 'end' }); for (const u of uids) { const h = m.players[ME].hand.findIndex((c) => c.uid === u); if (h >= 0 && m.ask.length && m.ask[0].kind === 'trim') await step({ type: 'trim', hand: h }); } })();
+}
+/** A pile of cards to look through (a scrap pile today; later the list an ability picks a card from): newest first.
+    pick, when given, makes each row a button. */
+function pileHtml(title, cards, pick = null) {
+  const v = o(), rows = [...cards].reverse().map((c, k) => `<${pick ? 'button' : 'div'} class="pilerow k-${c.color}" ${pick ? on(() => pick(c, cards.length - 1 - k)) : ''}><i></i><b>${esc(c.name)}</b><span>${esc(c.kind === 'bot' ? V.WORDS.unit : c.kind)}${c.rarity ? ` · ${c.rarity}` : ''} · ${esc(fac(c.color).name)}${v.resource === 'pool' ? ` · ${V.cost(c, v)} mana` : ''}</span></${pick ? 'button' : 'div'}>`).join('');
+  return `<div class="pileveil" ${on((e) => { if (e.target.classList.contains('pileveil')) { pile = null; render(); } })}><div class="pilepanel" role="dialog" aria-label="${esc(title)}"><div class="pilehead"><b>${esc(title)}</b><span class="label">${cards.length} ${cards.length === 1 ? 'card' : 'cards'}, newest first</span><button ${on(() => { pile = null; render(); })}>Close</button></div><div class="pilelist">${rows || '<span class="label">empty</span>'}</div></div></div>`;
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pile !== null) { pile = null; render(); } });
 function tray(list) {
   const q = asked(), btn = (label, a, cls = '', t = '') => `<button class="go ${cls}" ${on(() => act(a))}${t ? tipBtn(t) : ''}>${label}</button>`;
   let h = '', info = '', acts = '';
@@ -6112,12 +6157,24 @@ function tray(list) {
     const att = V.botAt(m, m.pending);
     h = `${esc(att.name)} attacks for ${m.pending.n}`; info = `You kept ${m.players[ME].mana} mana: you may answer with one instant from your hand (click it, then its target), or let the attack go on.`;
     acts = btn('No answer', { type: 'pass' }, 'primary');
+  } else if (q && q.kind === 'trim') {
+    h = `Discard down to ${V.handMaxOf(m, ME)} cards`; info = `You hold ${m.players[ME].hand.length}. Click a card in your hand to discard it.`;
+  } else if (trim) {
+    const need = m.players[ME].hand.length - V.handMaxOf(m, ME), left = need - trim.size;
+    h = `End of turn: discard ${need} ${need === 1 ? 'card' : 'cards'}`; info = `You may hold ${V.handMaxOf(m, ME)} cards when your turn ends. Click the ${need === 1 ? 'card' : 'cards'} in your hand to give up: <b>${left} to go</b>. The turn ends when you have chosen.`;
+    acts = `<button ${on(() => { trim = null; render(); })}>Back to my turn</button>`;
   } else {
     h = `Your turn ${Math.ceil(m.turnNo / 2)}`;
     const c = sel !== null ? m.players[ME].hand[sel] : null, plain = c && list.find((a) => a.type === 'play' && a.hand === sel && !a.target);
     info = c ? `<b>${esc(c.name)}</b>: ${list.some((a) => a.type === 'play' && a.hand === sel) ? (plain ? 'click it again or press Play.' : 'click a glowing place.') : '<span class="why">cannot be played now.</span>'}` : m.turnNo === 1 ? 'Play cards. <span class="why">No attacks on the first turn.</span>' : 'Play cards and use the buttons on your bots.';
     if (plain) acts += btn(`Play ${esc(c.name)}`, plain, 'primary');
-    acts += btn('End turn', { type: 'end' }, list.some((a) => a.type !== 'end') ? '' : 'primary', o().resource === 'pool' ? 'Ends your turn. Mana you keep can pay for one instant when you are attacked.' : 'Ends your turn.');
+    if (c && o().mulligan === 'cycle') {   // once a turn: discard the chosen card to draw one (as in the Charge game)
+      const cyc = list.find((a) => a.type === 'cycle' && a.hand === sel), t = 'Once a turn you may discard a card from your hand to draw one. This is not the end-of-turn discard.';
+      acts += cyc ? btn('Discard it, draw a card (once a turn)', cyc, '', t) : `<button disabled${tipBtn(`${m.cycled ? 'Already done this turn' : 'Your deck is empty'}. ${t}`)}>Discard it, draw a card${m.cycled ? ' (done this turn)' : ''}</button>`;
+    }
+    const over = V.handMaxOf(m, ME) && m.players[ME].hand.length > V.handMaxOf(m, ME);
+    if (over) acts += `<button class="go ${list.some((a) => a.type !== 'end' && a.type !== 'cycle') ? '' : 'primary'}" ${on(() => { trim = new Set(); sel = null; cmdAim = null; atkAim = null; render(); })}${tipBtn(`Ends your turn. You hold more than ${V.handMaxOf(m, ME)} cards, so you first choose which to discard.`)}>End turn</button>`;
+    else acts += btn('End turn', { type: 'end' }, list.some((a) => a.type !== 'end') ? '' : 'primary', o().resource === 'pool' ? 'Ends your turn. Mana you keep can pay for one instant when you are attacked.' : 'Ends your turn.');
   }
   if (q && sel !== null && q.kind === 'respond') { const c = m.players[ME].hand[sel], plain = c && list.find((a) => a.type === 'play' && a.hand === sel && !a.target); if (plain) acts = btn(`Play ${esc(c.name)}`, plain, 'primary') + acts; }
   $('tray-h').innerHTML = h; $('info').innerHTML = info; $('actions').innerHTML = acts;
@@ -6126,11 +6183,14 @@ function render() {
   reg = [];
   const list = opts(), v = o(), n = v.board === 'bench' ? 4 : 3, ks = Array.from({ length: n }, (_, k) => k);
   $('score-1').innerHTML = scoreHtml(BOT); $('score-0').innerHTML = scoreHtml(ME);
-  if (SOLO) for (const i of [ME, BOT]) { const c = m.players[i].cmd, hit = c && i === BOT ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : []; $(`cmd-${i}`).innerHTML = c ? cmdHtml(i, list, hit) : ''; $(`cmd-${i}`).className = c ? `panel cmdbox k-${c.color}${hit.length ? ' glow' : ''}` : 'nocmd'; }
+  if (SOLO) for (const i of [ME, BOT]) { const c = m.players[i].cmd, hit = c && i === BOT ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : []; $(`cmd-${i}`).innerHTML = c ? cmdHtml(i, list, hit) : ''; $(`cmd-${i}`).className = c ? `panel cmdbox k-${c.color}${hit.length ? ' glow' : ''}${hit.length ? ' hitme' : ''}` : 'nocmd';
+    // a glowing Thane with one attack waiting on it: a click anywhere on the box makes that attack (its buttons keep their own clicks)
+    $(`cmd-${i}`).onclick = hit.length === 1 ? (e) => { if (!e.target.closest('button')) act(hit[0]); } : hit.length > 1 ? (e) => { if (!e.target.closest('button')) { thaneAim = !thaneAim; sel = null; cmdAim = null; atkAim = null; render(); } } : null; }
   $('lanes').className = `b${n}`;
   $('lanes').innerHTML = ks.map((k) => slotHtml(BOT, k, list)).join('') + ks.map((k) => `<div class="slotlabel"${tip(v.board === 'bench' ? (k ? TIP.bench() : TIP.active()) : TIP.slot(k))}>${v.board === 'bench' ? (k ? 'bench' : 'active') : v.block === 'fixed' ? `lane ${k + 1}` : ''}</div>`).join('') + ks.map((k) => slotHtml(ME, k, list)).join('');
   $('hand').innerHTML = m.players[ME].hand.map((c, h) => cardHtml(c, h, list)).join('');
   tray(list);
+  $('pileview').innerHTML = pile === null ? '' : pileHtml(pile === ME ? 'Your scrap pile' : "The opponent's scrap pile", m.players[pile].scrap);
   if (SOLO) reword($('table')), reword($('hand'));
   $('log').innerHTML = log.slice(0, 60).map((l, k) => `<div class="${k < fresh ? 'new' : ''} ${l.who === ME ? 'me' : l.who === BOT ? 'foe' : ''}">${esc(l.text)}</div>`).join('');
 }
@@ -6138,7 +6198,8 @@ function render() {
 // ---- playing ---------------------------------------------------------------------------------------------------------
 const vitals = () => { const x = new Map(); m.players.forEach((p, i) => { p.bots.forEach((b, k) => { if (b) x.set(b.card.uid, { left: V.leftOf(b), slot: `slot-${i}-${k}` }); }); x.set(`hp-${i}`, { left: m.o.win === 'commander' ? p.cmd.health : m.o.win === 'health' ? p.health : p.kills }); }); return x; };
 async function step(a) {
-  busy = true; fresh = 0; sel = null; cmdAim = null; atkAim = null;
+  const game = m;   // a new match may be started while this action is still being shown: then it is dropped
+  busy = true; fresh = 0; sel = null; cmdAim = null; atkAim = null; thaneAim = false;
   // an attack is shown before it lands: the fighter jumps at the card it hits, or at the other Thane's box
   if (a.type === 'attack') {
     const i = m.actor, me = m.players[i].bots[a.slot], foe = m.players[1 - i];
@@ -6147,6 +6208,8 @@ async function step(a) {
   }
   const usedCmd = a.type === 'cmd' ? m.actor : null;
   const snap = Anim.snapshot(), was = vitals();
+  if (m !== game) return;
+  if (!V.options(m).some((x) => JSON.stringify(x) === JSON.stringify(a))) { busy = false; render(); return next(); }   // a stale click: nothing happens
   V.apply(m, a);
   pull(); render();
   const jobs = [Anim.flip(snap)], now = vitals();
@@ -6183,6 +6246,8 @@ $('new').addEventListener('click', start);
 if (SOLO) for (const k of ['abilities', 'commander']) { $(`opt-${k}`).checked = four[k]; $(`opt-${k}`).addEventListener('change', (e) => { four[k] = e.target.checked; history.replaceState(null, '', `?abilities=${four.abilities ? 1 : 0}&commander=${four.commander ? 1 : 0}`); start(); }); }
 start();
 
+/* ?dev=1: lets a test script reach the match and redraw (window.__thane.m, .render), to set up a table by hand. */
+if (qs.get('dev') === '1') window.__thane = { get m() { return m; }, render };
 /* ?selftest=1: clicks at random among the things that can be clicked now (hand cards, glowing places, the buttons on
    bots and in the panel), so every path a person has is used. The result is in the page title. */
 if (qs.get('selftest') === '1') {
