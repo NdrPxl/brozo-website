@@ -1090,7 +1090,9 @@ const COMMAND = { name: 'Frontline: Commander', board: 'row', resource: 'pool', 
 /** Thane: the default game of the page (dist/thane.html). Frontline with a commander (called a Thane), the bots' abilities,
  *  two Barricades a deck (walls: 2 mana, 14 HP, no attack), and card effects that may take a Thane above 20.
  *  Pass the card pool as o.pool to build decks with the Thane set's gear and instants. */
-const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true, restSwap: 'own' };
+const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true, restSwap: 'own',
+  // match length (2026-11-23): a Thane rests only while it is below 10 health, and a destroyed fighter costs 1 more
+  restBelow: 10, toll: { common: 4, uncommon: 4, rare: 5, legendary: 6 } };
 /** One commander a colour. Everything it does is for, or counts, your bots of its colour. */
 const COMMANDERS = {
   'cinder-marshal': { name: 'Cinder Marshal', deck: 'Ember Host', color: 'red', small: (o) => `Each of their bots facing one of your red bots takes ${o.cmdN + 1}.`, big: (o) => `Each of their bots takes ${o.cmdN - 1}, and 1 more for every red bot you have.` },
@@ -1101,19 +1103,19 @@ const COMMANDERS = {
   'null-vicar': { name: 'Null Vicar', deck: 'Hollow Choir', color: 'void', small: (o) => `Each of their bots facing one of your void bots takes ${o.cmdN}.`, big: (o) => `Each of their bots facing one of your void bots takes ${o.cmdN + 1}, and your bot is repaired by 2.` },
   // eighteen more (data/thanes.json): their small and big abilities are rows of ABIL (x), some have a passive; none has a rest swap unless the sims gave it one
   'ash-baroness': { name: "Ash Baroness", deck: "Burnt Offerings", color: 'red', x: { small: 'S27', big: 'B30' } },
-  'kiln-sergeant': { rest: 'R1', name: "Kiln Sergeant", deck: "Powder Keg", color: 'red', x: { small: 'S8', big: 'B11' } },
+  'kiln-sergeant': { name: "Kiln Sergeant", deck: "Powder Keg", color: 'red', x: { small: 'S8', big: 'B11' } },
   'slag-prophet': { name: "Slag Prophet", deck: "Last Light", color: 'red', x: { small: 'S2', big: 'B4' }, passive: 'P4' },
   'bastion-clerk': { rest: 'R2', name: "Bastion Clerk", deck: "Paper Fortress", color: 'chrome', x: { small: 'S20', big: 'B20' } },
   'lady-rivet': { name: "Lady Rivet", deck: "Tin Parade", color: 'chrome', x: { small: 'S7b', big: 'B1' } },
-  'gatekeeper-ohm': { name: "Gatekeeper Ohm", deck: "Closed Door", color: 'chrome', x: { small: 'S4', big: 'B8' }, passive: 'P8' },
-  'tally-duke': { rest: 'R1', name: "Tally Duke", deck: "Small Change", color: 'gold', x: { small: 'S22', big: 'B10' } },
+  'gatekeeper-ohm': { rest: 'R2', name: "Gatekeeper Ohm", deck: "Closed Door", color: 'chrome', x: { small: 'S4', big: 'B8' }, passive: 'P8' },
+  'tally-duke': { name: "Tally Duke", deck: "Small Change", color: 'gold', x: { small: 'S22', big: 'B10' } },
   'madam-surplus': { name: "Madam Surplus", deck: "Bulk Order", color: 'gold', x: { small: 'S16', big: 'B17' } },
-  'the-auditor': { name: "The Auditor", deck: "Final Notice", color: 'gold', x: { small: 'S15', big: 'B27' }, passive: 'P6' },
-  'relay-countess': { rest: 'R1', name: "Relay Countess", deck: "Short Circuit", color: 'volt', x: { small: 'S5x', big: 'B13' } },
+  'the-auditor': { name: "The Auditor", deck: "Final Notice", color: 'gold', x: { small: 'S15b', big: 'B27' }, passive: 'P6' },
+  'relay-countess': { name: "Relay Countess", deck: "Short Circuit", color: 'volt', x: { small: 'S5x', big: 'B13' } },
   'static-abbot': { rest: 'R1', name: "Static Abbot", deck: "Still Air", color: 'volt', x: { small: 'S4', big: 'B9' } },
   'captain-overclock': { rest: 'R1', name: "Captain Overclock", deck: "Redline", color: 'volt', x: { small: 'S30', big: 'B21' } },
   'hedge-marshal': { name: "Hedge Marshal", deck: "Volunteer Army", color: 'moss', x: { small: 'S1', big: 'B25' } },
-  'compost-king': { name: "Compost King", deck: "Second Helping", color: 'moss', x: { small: 'S17', big: 'B5' } },
+  'compost-king': { rest: 'R1', name: "Compost King", deck: "Second Helping", color: 'moss', x: { small: 'S17', big: 'B5' } },
   'elder-bramble': { name: "Elder Bramble", deck: "Slow Growth", color: 'moss', x: { small: 'S7b', big: 'B12b' } },
   'pale-chancellor': { name: "Pale Chancellor", deck: "Borrowed Time", color: 'void', x: { small: 'S24b', big: 'B23b' }, passive: 'P1b' },
   'sister-hush': { rest: 'R1', name: "Sister Hush", deck: "Quiet Hand", color: 'void', x: { small: 'S12x', big: 'B15x' } },
@@ -1126,6 +1128,10 @@ const DEFAULTS = { cmdHealth: 20, toll: { common: 3, uncommon: 3, rare: 4, legen
   wall: 0 /* HP of the wall each player starts with: it cannot attack, is worth nothing, and a bot may be played in its place */, walls: 'middle' /* or 'all' three lanes */,
   defenders: 0 /* copies of the 1-mana Bulwark in a deck, in place of its weakest commons */, defHp: 12, defHit: 1,
   mulligan: null /* 'pick': once, before the first turn, put any cards of your hand under the deck and draw as many · 'redraw': once, shuffle the hand back and draw one fewer · 'cycle': once a turn discard a card to draw one */,
+  // ---- match length levers (docs/thane-ability-sims.md, "Match length"): all off unless a ruleset sets them ----
+  restBelow: 0 /* the rest only happens while the commander has less than this much health (0 = any) */, restEvery: 1 /* 2 = the rest only on every other turn of its owner */,
+  restUnhurt: false /* no rest on a turn after one of your fighters was destroyed */, directPlus: 0 /* added to a hit on a commander through an open lane */,
+  pressureFrom: 0 /* from this turn of each player on, its commander loses 1 at the start of its turn (0 = never) */, pressureStep: 0 /* and 1 more every this many turns after that */,
   restSwap: null /* what a commander may do instead of resting, at no health: 'own' = each commander's own (COMMANDERS[id].rest; it may have none), an id of ABIL with slot 'rest' = that one for everyone (for sims), null = none */,
   give: null /* [ids, ids]: further abilities of ABIL each player's commander has, for trials (docs/thane-ability-sims.md) */,
   recruitOpen: false /* a lane that holds only a Recruit still counts as open: the fighter opposite may hit the commander */,
@@ -1393,6 +1399,10 @@ function startTurn(m) {
   for (const b of botsOf(p)) { b.acted = !!b.stun; b.stun = false; b.arrived = false; b.tapped = false; b.cover = false; }
   p.fortify = false; m.discount = 0; if (p.noBig) { m.smallOnly = true; p.noBig = false; }
   for (const q of m.players) for (const b of botsOf(q)) b.blocked = false;
+  if (m.o.pressureFrom && p.cmd) {   // late pressure: the commander of the player to move loses health at the start of its turn
+    const t = Math.ceil(m.turnNo / 2);
+    if (t >= m.o.pressureFrom) { const k = 1 + (m.o.pressureStep ? Math.floor((t - m.o.pressureFrom) / m.o.pressureStep) : 0); p.cmd.health -= k; p.cmd.pressure = (p.cmd.pressure || 0) + k; say(m, m.turn, `the long fight wears on {their} commander: it loses ${k} (health ${Math.max(0, p.cmd.health)})`); }
+  }
   if (m.turnNo > 1) draw(m, m.turn, m.o.draws + botsOf(p).filter((b) => abil(m, b, 'income')).length);   // the opener does not draw on the first turn
 }
 function destroy(m, t, how = 'is destroyed') {
@@ -1403,6 +1413,7 @@ function destroy(m, t, how = 'is destroyed') {
   if (b.made) { const k = (m.o.madeToll || {})[b.made] || 0; if (k && p.cmd) { p.cmd.health -= k; p.cmd.tolls = (p.cmd.tolls || 0) + k; } return say(m, t.side, `{their} ${b.name} is destroyed${k ? `: {their} commander loses ${k} (health ${Math.max(0, p.cmd.health)})` : ''}`); }
   if (b.gear) p.scrap.push(b.gear);
   p.scrap.push(b.card);
+  if (!b.made) p.lostFighter = true;
   if (m.o.win === 'commander') { const k = Math.max(2, m.o.toll[b.rarity || 'common'] - gearN(b, 'salvage')); p.cmd.health -= k; p.cmd.tolls = (p.cmd.tolls || 0) + k; say(m, t.side, `{their} ${b.name} ${how}: {their} commander loses ${k} (health ${Math.max(0, p.cmd.health)})`); }
   else if (m.o.win === 'kills') { const k = killsFor(m, b); foe.kills += k; say(m, t.side, `{their} ${b.name} ${how}: +${k} ${k === 1 ? 'kill' : 'kills'} (${foe.kills} of ${m.o.target})`); } else say(m, t.side, `{their} ${b.name} ${how}`);
   if (m.o.board === 'bench' && t.slot === 0 && botsOf(p).length) m.ask.push({ who: t.side, kind: 'promote' });
@@ -1584,7 +1595,7 @@ const ABIL = {
   B11: { name: 'Overrun', slot: 'big', text: 'Each of your bots gets +2 to its attacks this turn; damage past what destroys the bot in front carries to their commander.', t: (m, i) => (m.turnNo > 1 && mine(m, i).some((t) => !botAt(m, t).acted && !botAt(m, t).arrived && !botAt(m, t).wall) ? [null] : []), run: (m, i) => { for (const b of botsOf(m.players[i])) if (!b.wall && (b.two || b.small > 0)) { b.boost = (b.boost || 0) + 2; b.trample = true; } } },
   B12b: { name: 'Mass Promotion', slot: 'big', text: 'Each of your bots gains +1 attack and +1 HP for good.', t: (m, i) => (mine(m, i).some((t) => !botAt(m, t).wall) ? [null] : []), run: (m, i) => { for (const b of botsOf(m.players[i])) if (!b.wall) { if (b.small > 0 || b.two) b.small += 1; if (b.two) b.big += 1; b.max += 1; } } },
   B13: { name: 'Second Assault', slot: 'big', text: 'One of your bots that has attacked this turn attacks again.', t: (m, i) => mine(m, i).filter((t) => botAt(m, t).acted && !botAt(m, t).arrived && !botAt(m, t).wall && (botAt(m, t).two || botAt(m, t).small > 0)), run: (m, i, t) => { botAt(m, t).acted = false; } },
-  B14: { name: 'Blood Pact', slot: 'big', cost: 4, text: 'Destroy your bot with the least HP left: destroy one of theirs. Both kill costs are paid.', t: (m, i) => (mine(m, i).length ? theirsOf(m, i) : []), run: (m, i, t) => { const own = mine(m, i).reduce((x, y) => (leftOf(botAt(m, y)) < leftOf(botAt(m, x)) ? y : x)), b = botAt(m, t); destroy(m, own); if (botAt(m, t) === b) destroy(m, t); } },
+  B14: { name: 'Blood Pact', slot: 'big', text: 'Destroy your bot with the least HP left: destroy one of theirs. Both kill costs are paid.', t: (m, i) => (mine(m, i).length ? theirsOf(m, i) : []), run: (m, i, t) => { const own = mine(m, i).reduce((x, y) => (leftOf(botAt(m, y)) < leftOf(botAt(m, x)) ? y : x)), b = botAt(m, t); destroy(m, own); if (botAt(m, t) === b) destroy(m, t); } },
   B15x: { name: 'Mind Raid', slot: 'big', text: 'They discard the most expensive card in their hand.', t: (m, i) => (m.players[other(i)].hand.length ? [null] : []), run: (m, i) => { const q = m.players[other(i)]; let h = 0; q.hand.forEach((c, k) => { if (cost(c, m.o) > cost(q.hand[h], m.o)) h = k; }); const c = q.hand.splice(h, 1)[0]; q.scrap.push(c); say(m, other(i), `discard{s} ${c.name}`); } },
   B17: { name: 'Ambush', slot: 'big', cost: 5, text: 'Put the most expensive bot in your hand into an empty lane, free. It cannot attack this turn.', t: (m, i) => (m.players[i].hand.some((c) => c.kind === 'bot') ? emptyOf(m, i) : []), run: (m, i, t) => ambush(m, i, t, 99) },
   B20: { name: 'Fortify', slot: 'big', text: 'Until your next turn, hits on your commander and your bots are cut to 1 each.', t: (m, i) => (m.players[i].fortify ? [] : [null]), run: (m, i) => { m.players[i].fortify = true; } },
@@ -1597,6 +1608,8 @@ const ABIL = {
   P4: { name: 'Pain Engine', slot: 'passive', text: 'Whenever your commander spends health on an ability, their commander takes 1.' },
   P6: { name: 'Tax Collector', slot: 'passive', text: 'Their instants cost 1 more.' },
   P8: { name: 'Guarded Flank', slot: 'passive', text: 'Only one bot a turn may hit your commander through an open lane.' },
+  R20: { name: 'Hold Fast', slot: 'rest', text: 'One of their bots cannot attack on its next turn.', t: (m, i) => theirsOf(m, i).filter((t) => !botAt(m, t).wall && !botAt(m, t).stun && (botAt(m, t).two || botAt(m, t).small > 0)), run: (m, i, t) => { botAt(m, t).stun = true; } },
+  S15b: { name: 'Overtime', slot: 'small', cost: 2, text: 'Gain 2 mana now.', t: () => [null], run: (m, i) => { m.players[i].mana += 2; } },
   S1: { name: 'Press Gang', slot: 'small', text: 'Put two Recruits in empty lanes.', t: (m, i) => (emptyOf(m, i).length ? [null] : []), run: (m, i) => { for (let k = 0; k < 2; k++) { const t = emptyOf(m, i)[0]; if (t) make(m, i, 'recruit', t.slot); } } },
   S2: { name: 'Volley', slot: 'small', text: '2 damage to one bot, or 1 to their commander.', t: (m, i) => [...theirsOf(m, i), { side: other(i), slot: 'cmd' }], run: (m, i, t) => { if (t.slot === 'cmd') { const c = m.players[t.side].cmd; c.health -= 1; c.direct = (c.direct || 0) + 1; } else hurt(m, t, 2); } },
   S4: { name: 'Hold Fast', slot: 'small', text: 'One of their bots cannot attack on its next turn.', t: (m, i) => theirsOf(m, i).filter((t) => !botAt(m, t).wall && !botAt(m, t).stun), run: (m, i, t) => { botAt(m, t).stun = true; } },
@@ -1761,7 +1774,9 @@ function act(m, a) {
   if (a.type === 'end') {
     // a commander that did nothing this turn rests by itself
     const c = p.cmd;
-    if (c && !m.cmdUsed) { if (gain(m, i, 1, '', true)) { c.did = 'rest'; c.count.rest++; say(m, i, `{their} commander rests: health ${c.health}`); } else c.count.full = (c.count.full || 0) + 1; }
+    const mayRest = c && (!o.restBelow || c.health < o.restBelow) && (o.restEvery < 2 || Math.ceil(m.turnNo / 2) % o.restEvery === 0) && !(o.restUnhurt && p.lostFighter);
+    p.lostFighter = false;
+    if (c && !m.cmdUsed && mayRest) { if (gain(m, i, 1, '', true)) { c.did = 'rest'; c.count.rest++; say(m, i, `{their} commander rests: health ${c.health}`); } else c.count.full = (c.count.full || 0) + 1; }
     m.ended = true; return;
   }
   if (a.type === 'cmd') return command(m, i, a);
@@ -1774,7 +1789,7 @@ function act(m, a) {
     return say(m, i, `{their} ${b.name} steps back, ${p.bots[0].name} becomes the active bot`);
   }
   if (a.type === 'attack') {
-    const b = p.bots[a.slot], n = (a.at === 'cmd' ? Math.ceil(hitOf(b, 'small') * o.directX) : hitOf(b, a.kind)) + auras(p, 'banner', a.slot);
+    const b = p.bots[a.slot], n = (a.at === 'cmd' ? Math.ceil(hitOf(b, 'small') * o.directX) + o.directPlus : hitOf(b, a.kind)) + auras(p, 'banner', a.slot);
     b.acted = true;
     if (a.kind === 'big') m.bigMade = true;
     if (o.resource === 'pool' && a.kind === 'big' && !b.freeBig) p.mana -= needOf(b, 'big');
@@ -1850,7 +1865,7 @@ function side(m, i) {
     if (m.turn === i) for (const b of botsOf(p)) if (!b.acted && !b.arrived) s += 0.4 * hitOf(b, 'small') + (b.through ? 0.9 * o.cmdWeight * hitOf(b, 'small') : 0);
   }
   // a commander that has used no ability yet this turn will rest when the turn ends: using one gives that up
-  if (o.win === 'commander' && m.turn === i && !m.cmdUsed && p.cmd.health < (o.cmdCap === 0 ? Infinity : o.cmdCap || o.cmdHealth)) s += o.cmdWeight;
+  if (o.win === 'commander' && m.turn === i && !m.cmdUsed && p.cmd.health < (o.cmdCap === 0 ? Infinity : o.cmdCap || o.cmdHealth) && (!o.restBelow || p.cmd.health < o.restBelow)) s += o.cmdWeight;
   // an open lane in front of one of their bots lets it hit the commander: count most of that hit as already taken
   if (o.direct && o.win === 'commander') { const q = m.players[other(i)]; p.bots.forEach((b, k) => { if ((!b || (o.recruitOpen && b.made === 'recruit')) && q.bots[k]) s -= 0.8 * o.cmdWeight * Math.ceil(hitOf(q.bots[k], 'small') * o.directX); }); }
   // mana in hand on your own turn is worth something while there are cards to spend it on (a commander can make mana)
@@ -1899,7 +1914,11 @@ function ranked(m) {
   const me = m.actor;
   return options(m).map((a) => {
     const c = clone(m); apply(c, a, false);
-    return { a, v: afterTurn(c, me) - (a.type === 'end' ? 0.05 : 0) };
+    let v = afterTurn(c, me);
+    // a commander's ability is also judged with the best single thing done after it (an attack with the bonus it gave,
+    // a card paid with the mana it made): many abilities are worth nothing until then
+    if (a.type === 'cmd' && c.winner === null && !c.ask.length && c.turn === me) for (const x of options(c)) if (x.type === 'attack' || x.type === 'play') { const c2 = clone(c); apply(c2, x, false); v = Math.max(v, afterTurn(c2, me) - 0.01); }
+    return { a, v: v - (a.type === 'end' ? 0.05 : 0) };
   }).sort((x, y) => y.v - x.v);
 }
 /** The player as it was before 2026-11-23 (options judged before the turn passes), kept to measure the change. */
@@ -5988,7 +6007,7 @@ const HOW = () => {
   if (v.defenders) L.push(`Each deck holds ${v.defenders} <b>Barricades</b>: walls with ${v.defHp} HP that cannot attack. A lane with a wall in it is not open.`);
   if (v.pool) L.push('<b>Gear and instants have colours.</b> A coloured gear fits only a bot of its colour; a coloured instant needs a bot of its colour (the card says which way). Colourless ones work for anyone and cost 1 more. Some instants last <b>until the end of the turn</b> and show as a tag on the bot. "Rare art" on a card is a rarer picture only.');
   if (v.abilities) L.push('Some bots have an <b>ability</b>, the bold line on the card (hover for it). Most commons have none.');
-  if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). ${v.restSwap ? `Some commanders also have a <b>rest swap</b>, the third line in the box with a 0: at no health, it does that instead of resting (yours: ${V.swapOf(m, ME) ? `<b>${V.ABIL[V.swapOf(m, ME)].name}</b>, ${V.ABIL[V.swapOf(m, ME)].text.replace(/^./, (x) => x.toLowerCase())}` : 'none'}). A Recruit or a Sandbag an ability puts in a lane is not a card: it takes no gear, a card may be played in its place, and it costs nothing when it is destroyed. ` : ''}<b>If you use none of them, it rests by itself when you end your turn: +1 health</b>, never above ${v.cmdHealth}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
+  if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). ${v.restSwap ? `Some commanders also have a <b>rest swap</b>, the third line in the box with a 0: at no health, it does that instead of resting (yours: ${V.swapOf(m, ME) ? `<b>${V.ABIL[V.swapOf(m, ME)].name}</b>, ${V.ABIL[V.swapOf(m, ME)].text.replace(/^./, (x) => x.toLowerCase())}` : 'none'}). A Recruit or a Sandbag an ability puts in a lane is not a card: it takes no gear, a card may be played in its place, and it costs nothing when it is destroyed. ` : ''}<b>If you use none of them, it rests by itself when you end your turn: +1 health</b>${v.restBelow ? `, but only while it has less than ${v.restBelow} health` : `, never above ${v.cmdHealth}`}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
   L.push('Gear is fitted to a bot and stays; an instant happens once. Hover over anything (or press and hold on a phone) for what it means.');
   return L;
 };
@@ -6056,8 +6075,8 @@ function cmdHtml(i, list, hit = []) {
   const sw = V.swapOf(m, i);   // this commander's own rest swap, if it has one: instead of resting, at no health
   if (sw) rows.push([`x:${sw}`, '0', V.ABIL[sw].name, V.ABIL[sw].text]);
   // the rest is not a button: a commander that used no ability gains 1 when its owner's turn ends
-  const myTurn = m.turn === i && m.winner === null, restText = myTurn ? (used ? 'No rest this turn' : c.health >= v.cmdHealth ? 'At full health' : `Rests at the end of ${mine ? 'your' : 'its'} turn: +1 health`) : c.did === 'rest' ? 'Rested: +1 health' : c.did ? 'Used an ability: no rest' : c.health >= v.cmdHealth ? 'At full health' : 'Rests when it uses no ability';
-  const rest = `<div class="line rest${!used && myTurn && c.health < v.cmdHealth ? ' on' : ''}"${tip(`A commander that uses no ability in its owner's turn rests when the turn ends: +1 health, never above ${v.cmdHealth}. Using the small or the big ability means no rest that turn.`)}><span class="price plus">+1</span>${restText}</div>`;
+  const myTurn = m.turn === i && m.winner === null, restCap = v.restBelow || v.cmdHealth, noRest = c.health >= restCap ? (v.restBelow ? `No rest at ${v.restBelow} health or more` : 'At full health') : '', restText = myTurn ? (used ? 'No rest this turn' : noRest || `Rests at the end of ${mine ? 'your' : 'its'} turn: +1 health`) : c.did === 'rest' ? 'Rested: +1 health' : c.did ? 'Used an ability: no rest' : noRest || 'Rests when it uses no ability';
+  const rest = `<div class="line rest${!used && myTurn && c.health < restCap ? ' on' : ''}"${tip(`A commander that uses no ability in its owner's turn rests when the turn ends: +1 health${v.restBelow ? `, but only while it has less than ${v.restBelow} health` : `, never above ${v.cmdHealth}`}. Using an ability means no rest that turn.`)}><span class="price plus">+1</span>${restText}</div>`;
   const lines = rows.map(([mode, price, label, text]) => {
     const body = `<span class="price${price === '0' ? ' zero' : ''}">${price}</span><b>${label}:</b> ${esc(text)}`, swap = mode.startsWith('x:'), t = swap ? `${label}: ${text} Costs no health, but the commander does not rest this turn. One ability a turn.` : `${label}: ${text} Costs ${mode === 'small' ? v.cmdSmall : v.cmdBig} of the commander's own health, which is the score, and the commander does not rest this turn. One ability a turn.`;
     const didIt = c.did === mode || (swap && c.did === 'swap');
