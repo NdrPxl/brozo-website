@@ -1,0 +1,4 @@
+/thane-test /thane/ 301
+/thane-test/ /thane/ 301
+/thane-test/* /thane/:splat 301
+/thane /thane/ 301
