@@ -215,6 +215,59 @@ details p { margin: 6px 0; }
 .pilelist { overflow-y: auto; padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
 .pilerow { --k: #8a8f98; display: flex; align-items: baseline; gap: 8px; text-align: left; font-size: .9rem; padding: 4px 8px; border: 1px solid var(--line); border-left: 6px solid var(--k); border-radius: 6px; background: color-mix(in srgb, var(--k) 10%, var(--panel)); }
 .pilerow span { color: var(--muted); font-size: .78rem; margin-left: auto; text-align: right; } .pilerow i { display: none; }
+
+/* ---- the phone layout: one portrait screen, no page scroll; thumbnails, and a sheet for the full card ---- */
+#phoneui, .phoneonly { display: none; }
+body.phone { overflow: hidden; overscroll-behavior: none; }
+body.phone main { max-width: none; padding: 0; }
+body.phone #table, body.phone main > .label, body.phone #hand, body.phone details, body.phone header { display: none; }
+body.phone #phoneui { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto auto auto; gap: 5px; height: 100vh; height: 100dvh; box-sizing: border-box; padding: max(5px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); }
+body.phone button { touch-action: manipulation; }
+.p-strip { --k: #8a8f98; display: flex; align-items: center; gap: 6px; min-height: 48px; padding: 3px 6px; border: 2px solid var(--k); border-radius: 10px; background: color-mix(in srgb, var(--k) 20%, var(--panel)); min-width: 0; }
+.p-strip .tface { position: relative; flex: 0 0 46px; width: 46px; height: 46px; padding: 0; border: 2px solid var(--k); border-radius: 9px; overflow: hidden; background: color-mix(in srgb, var(--k) 45%, var(--panel)); }
+.p-strip .tface .art { position: absolute; inset: 0; background-size: 250% auto; background-position: 82% 9%; opacity: .9; }
+.p-strip .tface .hp { position: absolute; left: 0; right: 0; bottom: 0; font: 700 1.05rem var(--display); line-height: 1.15; color: #fff; background: rgba(0, 0, 0, .62); text-align: center; }
+.p-strip .tface.glow, .thumb.glow, #phoneui .hole.glow, .mcard.glow { box-shadow: 0 0 0 3px var(--gold), 0 0 12px var(--gold); }
+.p-strip .tface.can, .thumb.can { box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 70%, transparent); }
+.p-strip .who { flex: 1 1 auto; min-width: 0; font: 700 .86rem var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .p-strip .who small { display: block; font: 400 .68rem var(--body); color: var(--muted); }
+.p-strip .mn, .p-strip .kl { font-size: .74rem; white-space: nowrap; } .p-strip .mn b { font: 700 1.15rem var(--display); color: #4f7cff; } .p-strip .kl b { font: 700 1.15rem var(--display); color: var(--foe); }
+.p-strip .mini { flex: 0 0 auto; min-height: 40px; padding: 2px 7px; font-size: .72rem; border-radius: 8px; }
+.p-strip .pills { flex: 1 1 auto; min-width: 0; display: flex; gap: 4px; }
+.p-strip .pill { flex: 1 1 0; min-width: 0; min-height: 42px; padding: 2px 4px; font-size: .68rem; line-height: 1.1; font-weight: 600; border: 2px solid var(--k); border-radius: 9px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.p-strip .pill i { font-style: normal; font-weight: 700; font-size: .7rem; background: var(--foe); color: var(--panel); border-radius: 5px; padding: 0 5px; margin-bottom: 1px; } .p-strip .pill.on { background: var(--gold); color: #fff; } .p-strip .pill:disabled { border-color: var(--line); }
+.p-lanes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
+.p-lanes .cell { min-height: 0; display: flex; }
+.thumb, #phoneui .hole { position: relative; flex: 1; min-width: 0; min-height: 0; padding: 0; border-radius: 9px; overflow: hidden; }
+.thumb { --k: #8a8f98; border: 2px solid var(--k); background: var(--panel); color: var(--ink); text-align: left; }
+.thumb .art { position: absolute; inset: 0; background-size: cover; background-position: center 18%; }
+.thumb.done .art { filter: grayscale(.6); opacity: .6; } .thumb.made { border-style: dashed; } .thumb.shielded { border-color: var(--shield); box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 5px var(--shield); }
+.thumb .nm { position: absolute; left: 0; right: 30px; top: 0; padding: 1px 4px; font-size: .64rem; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: color-mix(in srgb, var(--k) 35%, var(--panel)); border-radius: 0 0 6px 0; }
+.thumb .hpn { position: absolute; top: 1px; right: 1px; min-width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--panel); font: 700 1rem var(--display); display: grid; place-items: center; border: 2px solid var(--k); }
+.thumb .row { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 3px; padding: 2px 3px; background: color-mix(in srgb, var(--panel) 82%, transparent); }
+.thumb .at { font: 700 .95rem var(--display); white-space: nowrap; } .thumb .at small { font-size: .7rem; margin: 0 1px; color: var(--muted); } .thumb .at.none { font: 600 .62rem var(--body); text-transform: uppercase; color: var(--muted); }
+.thumb .mks { display: flex; gap: 2px; } .thumb .mk { font-style: normal; font: 700 .6rem var(--body); min-width: 14px; height: 14px; border-radius: 4px; background: var(--ink); color: var(--panel); display: grid; place-items: center; padding: 0 2px; }
+#phoneui .hole { border: 1px dashed var(--line); background: var(--slot); color: var(--ink); font-size: .75rem; opacity: 1; } #phoneui .hole:disabled { opacity: .55; }
+#p-hand { display: flex; gap: 5px; overflow-x: auto; overflow-y: hidden; padding: 3px 1px; min-height: 86px; scrollbar-width: none; } #p-hand .empty { color: var(--muted); font-size: .75rem; align-self: center; }
+.mcard { --k: #8a8f98; position: relative; flex: 0 0 60px; width: 60px; height: 80px; padding: 0; border: 2px solid var(--k); border-radius: 8px; overflow: hidden; background: var(--panel); color: var(--ink); }
+.mcard .art { position: absolute; inset: 0; background-size: cover; background-position: center 20%; } .mcard.dim { opacity: .5; } .mcard.sel { outline: 3px solid var(--ink); transform: translateY(-3px); } .mcard.trimmed { opacity: .4; outline: 3px solid var(--foe); }
+.mcard .cost { position: absolute; top: 1px; left: 1px; min-width: 19px; height: 19px; border-radius: 5px; background: #4f7cff; color: #fff; font: 700 .78rem var(--body); font-style: normal; display: grid; place-items: center; }
+.mcard .hpn { position: absolute; top: 1px; right: 1px; min-width: 19px; height: 19px; border-radius: 50%; background: var(--ink); color: var(--panel); font: 700 .72rem var(--display); font-style: normal; display: grid; place-items: center; }
+.mcard .nm { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 2px; font-size: .56rem; font-weight: 600; line-height: 1.1; background: color-mix(in srgb, var(--panel) 85%, transparent); max-height: 2.3em; overflow: hidden; } .mcard .kd { display: none; }
+#p-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "status acts" "feed feed"; gap: 3px 6px; align-items: center; }
+#p-status { grid-area: status; min-width: 0; font-size: .74rem; line-height: 1.2; } #p-tray-h { display: block; font: 700 .82rem var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #p-info { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--muted); overflow: hidden; }
+#p-actions { grid-area: acts; display: flex; gap: 5px; } #p-actions button { min-height: 42px; padding: 4px 10px; font-size: .82rem; }
+#p-feed { grid-area: feed; min-width: 0; } .feedline { width: 100%; min-height: 38px; padding: 2px 8px; font-size: .7rem; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); border-radius: 7px; }
+.sheetveil { position: fixed; inset: 0; z-index: 85; background: rgba(0, 0, 0, .5); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 460px; max-height: 86dvh; overflow-y: auto; background: var(--panel); color: var(--ink); border: 2px solid var(--gold); border-bottom: 0; border-radius: 14px 14px 0 0; padding: 8px 10px max(12px, env(safe-area-inset-bottom)); }
+.sheethead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; } .sheethead button { min-height: 40px; }
+.sheetcard { display: flex; justify-content: center; } .sheetcard > .card { width: min(250px, 78vw); min-height: 300px; flex: 0 0 auto; } .sheetcard.inert > .card { pointer-events: none; min-height: 230px; transform: none !important; box-shadow: none !important; opacity: 1 !important; }
+.sheetcard .card .moves button, .sheetacts button, .sheet .cmdbox .acts button { min-height: 44px; font-size: .9rem; }
+.sheetacts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; } .sheetlog { font-size: .82rem; } .sheetlog div { padding: 2px 0 2px 6px; border-left: 3px solid transparent; } .sheetlog .me { border-color: var(--gold); } .sheetlog .foe { border-color: var(--foe); }
+/* the menu on a phone: the page header and the help, as a full-screen panel */
+body.phone.show-menu header, body.phone.show-menu details { display: block; position: fixed; z-index: 95; left: 0; right: 0; background: var(--bg); padding: 12px 14px; margin: 0; }
+body.phone.show-menu header { top: 0; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; height: 52dvh; box-sizing: border-box; overflow-y: auto; border-bottom: 2px solid var(--gold); }
+body.phone.show-menu details { top: 52dvh; bottom: 0; overflow-y: auto; }
+body.phone.show-menu .phoneonly { display: block; min-height: 44px; } body.phone.show-menu header select { min-height: 40px; }
 </style>
 <main>
   <header>
@@ -224,6 +277,8 @@ details p { margin: 6px 0; }
     <label class="label" title="How fast cards and numbers move; off shows each result at once.">Animation <select id="speed"><option value="1">normal</option><option value="2">fast</option><option value="0">off</option></select></label>
     <label class="label" style="display:flex;align-items:center;gap:5px" title="On: each deck has a commander whose health is the score. Off: first to 5 kill points, with the older cards and no walls."><input type="checkbox" id="opt-commander"> Thane</label>
     <label class="label" style="display:flex;align-items:center;gap:5px" title="On: bots have their abilities (the bold line on a card). Off: plain bots."><input type="checkbox" id="opt-abilities"> Abilities</label>
+    <label class="label" title="The phone layout fits a portrait screen without scrolling; a tap on a card opens it in full. Auto picks by the screen.">Layout <select id="layout"><option value="auto">auto</option><option value="phone">phone</option><option value="desktop">desktop</option></select></label>
+    <button id="p-new" class="phoneonly">New match</button><button id="menu-close" class="phoneonly">Close menu</button>
 
   </header>
   <div id="table" class="solo">
@@ -232,6 +287,15 @@ details p { margin: 6px 0; }
     <div id="board"><div class="scorebar" id="score-1"></div><div id="lanes"></div><div class="scorebar" id="score-0"></div></div>
     <div class="panel cmdbox" id="cmd-1"></div>
     <div class="panel" id="feed"><span class="label">What happened</span><div id="log"></div></div>
+  </div>
+  <div id="phoneui">
+    <div class="p-strip foe" id="p-cmd-1"></div>
+    <div class="p-lanes" id="p-lanes-1"></div>
+    <div class="p-lanes mine" id="p-lanes-0"></div>
+    <div class="p-strip me" id="p-cmd-0"></div>
+    <div id="p-hand"></div>
+    <div id="p-bar"><div id="p-status"><b id="p-tray-h"></b><span id="p-info"></span></div><div id="p-actions"></div><div id="p-feed"></div></div>
+    <div id="p-sheet"></div>
   </div>
   <div id="pileview"></div>
   <div class="label" style="margin-top:10px">Your hand</div>
@@ -5966,6 +6030,14 @@ const SOLO = !!$('cmd-0');   // the Frontline page: one version, with commanders
 /* The Frontline page has four versions: the bots' abilities off or on, a commander or not (then: first to 5 kills). */
 const four = { abilities: qs.get('abilities') !== '0', commander: qs.get('commander') !== '0' };
 // with a Thane: the Thane rules (two Barricades a deck, cards may go above 20) and the Thane card pool for gear and instants
+/* Two layouts of the Thane page over the same match and the same actions: the desktop one, and a phone one that fits a
+   portrait screen without scrolling (thumbnails; a tap opens the full card as a sheet). Chosen by the screen (narrow and
+   touch-first), or by the Layout menu, which is remembered on the device; ?layout=phone|desktop for testing. */
+const layoutSaved = () => { const q = qs.get('layout'); if (q === 'phone' || q === 'desktop') return q; try { return localStorage.getItem('thane-layout'); } catch { return null; } };
+const layoutAuto = () => typeof matchMedia === 'function' && matchMedia('(max-width: 700px)').matches && (matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0);
+let PHONE = SOLO && !!$('phoneui') && (layoutSaved() ? layoutSaved() === 'phone' : layoutAuto());
+let sheet = null;   // phone: what is open over the board: { t: 'bot', side, slot } | { t: 'hand', uid } | { t: 'cmd', i } | { t: 'feed' }
+const E = (id) => $(PHONE ? `p-${id}` : id);   // the same thing in either layout
 const rules = () => (SOLO ? (four.commander ? { ...V.THANE, abilities: four.abilities, pool: typeof THANE_SET !== 'undefined' && THANE_SET ? THANE_SET.cards : null } : { ...V.VERSIONS.frontline, abilities: four.abilities }) : V.VERSIONS[ver]);
 /** Everything a player reads is put into the player's words (V.WORDS in engine/versions.mjs: the unit noun and the leader's name) after each redraw. */
 function reword(root = document.body) {
@@ -5986,7 +6058,7 @@ function start() {
   const meId = withThane ? (V.COMMANDERS[settings.me] ? settings.me : anyId()) : null, foeId = withThane ? anyId() : null;
   const colours = withThane ? [V.COMMANDERS[meId].color, V.COMMANDERS[foeId].color] : [pick(settings.me), pick(settings.bot)];
   m = V.newMatch([V.buildDeck(SET, colours[0], rand, o), V.buildDeck(SET, colours[1], rand, o)], rules(), { ...(withThane ? { cmd: [meId, foeId] } : {}), seed: Math.floor(rand() * 1e9), opener: rand() < 0.5 ? 0 : 1 });
-  sel = null; log = []; seen = 0; fresh = 0; busy = false;
+  sel = null; log = []; seen = 0; fresh = 0; busy = false; sheet = null; trim = null; pile = null; document.body.classList.remove('show-menu');
   note(m.turn === ME ? 'You go first: no attacks on the first turn.' : 'The opponent goes first.', null);
   help(); render(); next();
 }
@@ -6140,6 +6212,87 @@ function pileHtml(title, cards, pick = null) {
   return `<div class="pileveil" ${on((e) => { if (e.target.classList.contains('pileveil')) { pile = null; render(); } })}><div class="pilepanel" role="dialog" aria-label="${esc(title)}"><div class="pilehead"><b>${esc(title)}</b><span class="label">${cards.length} ${cards.length === 1 ? 'card' : 'cards'}, newest first</span><button ${on(() => { pile = null; render(); })}>Close</button></div><div class="pilelist">${rows || '<span class="label">empty</span>'}</div></div></div>`;
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pile !== null) { pile = null; render(); } });
+
+// ---- the phone layout --------------------------------------------------------------------------------------------------
+/** The glyphs on a thumbnail: one letter each, with what it means on hover or long press. */
+const marks = (b) => [b.gear ? ['G', `Gear: ${b.gear.name}`] : null, b.shield ? ['S', 'Shielded: the next hit is stopped'] : null, b.stun ? ['Z', 'Cannot attack on its next turn'] : null, b.made ? ['M', 'Made by a commander: not a card'] : null, b.boost ? [`+${b.boost}`, 'Hits harder this turn'] : null, b.defender ? ['W', 'A wall: it cannot attack'] : null].filter(Boolean)
+  .map(([g, t]) => `<i class="mk"${tip(t)}>${g}</i>`).join('');
+/** A fighter as a thumbnail. A tap uses it as a target when it is one; otherwise it opens the full card. */
+function thumbHtml(b, side, slot, list) {
+  const mine = side === ME, v = o();
+  const tgt = atkAim && !mine ? list.find((a) => a.type === 'attack' && a.slot === atkAim.slot && a.kind === atkAim.kind && a.at === slot) : cmdAim ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.side === side && a.target.slot === slot) : sel !== null ? list.find((a) => a.type === 'play' && a.hand === sel && a.target && a.target.side === side && a.target.slot === slot) : null;
+  const via = thaneAim && mine ? list.find((a) => a.type === 'attack' && a.slot === slot && a.at === 'cmd') : null, q = asked();
+  const ask = mine && q && (q.kind === 'promote' || q.kind === 'block') ? list.find((a) => a.slot === slot && (a.type === 'promote' || a.type === 'block')) : null;
+  const can = mine && !q && list.some((a) => a.type === 'attack' && a.slot === slot), art = artOf(b), hit = tgt || via || ask;
+  const tap = hit ? () => act(hit) : () => { sheet = { t: 'bot', side, slot }; render(); };
+  const atk = b.defender && !V.hitOf(b, 'small') ? '<span class="at none">wall</span>' : `<span class="at"${tip(b.two ? `Small attack ${V.hitOf(b, 'small')}, big attack ${V.hitOf(b, 'big')} (costs ${V.needOf(b, 'big')} mana)` : `Attack ${V.hitOf(b, 'small')}`)}>${V.hitOf(b, 'small')}${b.two ? `<small>/</small>${V.hitOf(b, 'big')}` : ''}</span>`;
+  return `<button class="thumb k-${b.color}${b.made ? ' made' : ''}${hit ? ' glow go' : can ? ' can go' : ''}${b.acted && side === m.turn ? ' done' : ''}${b.shield ? ' shielded' : ''}" data-key="${b.card.uid}" ${on(tap)} aria-label="${esc(b.name)}">${art ? `<span class="art" style="background-image:url(${art})"></span>` : ''}
+    <span class="nm">${esc(b.name)}</span><span class="hpn"${tip(TIP.left(b))}>${V.leftOf(b)}</span><span class="row">${atk}<span class="mks">${marks(b)}</span></span></button>`;
+}
+function cellHtml(side, slot, list) {
+  const b = m.players[side].bots[slot];
+  const made = !b && cmdAim && side === ME ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.side === side && a.target.slot === slot) : null;
+  const put = made || (!b && sel !== null && list.find((a) => a.type === 'play' && a.hand === sel && a.target && a.target.side === side && a.target.slot === slot));
+  return `<div class="cell" data-key="slot-${side}-${slot}">${b ? thumbHtml(b, side, slot, list) : `<button class="hole${put ? ' glow go' : ''}" ${put ? on(() => act(put)) : 'disabled'}>${put ? 'here' : ''}</button>`}</div>`;
+}
+/** A player's strip: the Thane as a thumbnail, health, mana, and (mine) its abilities as pills. */
+function stripHtml(i, list) {
+  const p = m.players[i], c = p.cmd, v = o(), mine = i === ME;
+  const pic = c && typeof ASSETS !== 'undefined' && ASSETS.rigs[`thane-${c.id}`];
+  const onCmd = !mine ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : [];
+  const aimed = !mine && cmdAim ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.slot === 'cmd') : null;
+  const direct = aimed || (atkAim && onCmd.length === 1 ? onCmd[0] : null);   // a tap on their Thane finishes an aimed attack or ability
+  const face = c ? `<button class="tface k-${c.color}${direct ? ' glow go' : onCmd.length ? ' can go' : ''}" data-key="p-face-${i}" ${on(direct ? () => act(direct) : () => { sheet = { t: 'cmd', i }; render(); })} aria-label="${esc(c.name)}">${pic ? `<span class="art" style="background-image:url(${pic})"></span>` : ''}<b class="hp" data-key="hp-${i}">${Math.max(0, c.health)}</b></button>` : '';
+  const score = c ? '' : `<span class="kl" data-key="hp-${i}"><b>${Math.min(p.kills, v.target)}</b>/${v.target}</span>`;
+  const mana = v.resource === 'pool' ? `<span class="mn"${tip(TIP.mana(p, mine))}><b>${p.mana}</b>/${p.manaMax}</span>` : '';
+  const scrap = `<button class="mini" ${on(() => { pile = pile === i ? null : i; render(); })}>scrap ${p.scrap.length}</button>`;
+  if (!mine) return `${face}<span class="who">${c ? esc(c.name) : 'Opponent'}<small>hand ${p.hand.length} · deck ${p.deck.length}</small></span>${score}${mana}${scrap}<button class="mini" ${on(() => { document.body.classList.add('show-menu'); })} aria-label="Menu">menu</button>`;
+  // my Thane's abilities as pills: price and name; the full text is in the sheet behind the portrait
+  const sw = c ? V.swapOf(m, i) : null, rows = c ? [['small', v.cmdSmall, c.x ? V.ABIL[c.x.small] : null, 'Small'], ['big', v.cmdBig, c.x ? V.ABIL[c.x.big] : null, 'Big'], ...(sw ? [[`x:${sw}`, 0, V.ABIL[sw], '']] : [])] : [];
+  const pills = rows.map(([mode, base, ab, word]) => {
+    const as = list.filter((a) => a.type === 'cmd' && a.mode === mode), price = ab && ab.cost !== undefined ? ab.cost : base, label = ab ? ab.name : word, text = ab ? ab.text : c[mode](v);
+    const tap = !as.length ? null : as.some((a) => a.target) ? () => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; thaneAim = false; render(); } : () => act(as[0]);
+    return `<button class="pill${cmdAim === mode ? ' on' : ''}${tap ? ' go' : ''}" ${tap ? on(tap) : 'disabled'}${tipBtn(`${label}: ${text}`)}><i>${price ? `−${price}` : '0'}</i>${esc(label)}</button>`;
+  }).join('');
+  return `${face}${score}${mana}<span class="pills">${pills}</span>${scrap}`;
+}
+function miniHtml(c, h, list) {
+  const art = artOf(c), v = o(), can = list.some((a) => (a.type === 'play' || a.type === 'cycle') && a.hand === h), asking = asked() && asked().kind === 'trim' && asked().who === ME;
+  const tap = trim ? () => markTrim(c.uid) : asking ? () => act({ type: 'trim', hand: h }) : () => { sheet = { t: 'hand', uid: c.uid }; render(); };
+  return `<button class="mcard k-${c.color}${trim ? (trim.has(c.uid) ? ' trimmed go' : ' glow go') : asking ? ' glow go' : sel === h ? ' sel' : can ? ' go' : list.length ? ' dim' : ''}${c.rareArt ? ' rareart' : ''}" data-key="${c.uid}" ${on(tap)} aria-label="${esc(c.name)}">${art ? `<span class="art" style="background-image:url(${art})"></span>` : ''}
+    ${v.resource === 'pool' ? `<i class="cost">${V.cost(c, v)}</i>` : ''}${c.kind === 'bot' ? `<i class="hpn">${V.shape(c, v).max}</i>` : ''}<span class="nm">${esc(c.name)}</span><span class="kd">${c.kind === 'bot' ? V.WORDS.unit : c.kind}</span></button>`;
+}
+/** What is open over the board: the full card, Thane box or feed, with its own buttons. A tap outside closes it. */
+function sheetHtml(list) {
+  if (!sheet) return '';
+  const close = on((e) => { if (e.target.classList.contains('sheetveil') || e.target.classList.contains('sheetclose')) { sheet = null; render(); } });
+  let body = '', title = '';
+  if (sheet.t === 'bot') { const b = m.players[sheet.side].bots[sheet.slot]; if (!b) return ''; title = sheet.side === ME ? 'Your fighter' : "The opponent's fighter"; body = `<div class="sheetcard">${botHtml(b, sheet.side, sheet.slot, list)}</div>`; }
+  else if (sheet.t === 'hand') {
+    const h = m.players[ME].hand.findIndex((c) => c.uid === sheet.uid), c = m.players[ME].hand[h]; if (!c) return '';
+    const plays = list.filter((a) => a.type === 'play' && a.hand === h), plain = plays.find((a) => !a.target), cyc = list.find((a) => a.type === 'cycle' && a.hand === h);
+    const btns = [plain ? `<button class="go primary" ${on(() => act(plain))}>Play it</button>` : plays.length ? `<button class="go primary" ${on(() => { sel = h; sheet = null; cmdAim = null; atkAim = null; thaneAim = false; render(); })}>Play it: pick a glowing place</button>` : `<button disabled>Cannot be played now</button>`,
+      o().mulligan === 'cycle' ? (cyc ? `<button class="go" ${on(() => act(cyc))}>Discard it, draw a card (once a turn)</button>` : `<button disabled>Discard it, draw a card${m.cycled ? ' (done this turn)' : ''}</button>`) : ''].join('');
+    title = 'In your hand'; body = `<div class="sheetcard inert">${cardHtml(c, h, [])}</div><div class="sheetacts">${btns}</div>`;
+  } else if (sheet.t === 'cmd') {
+    const c = m.players[sheet.i].cmd; if (!c) return '';
+    const hit = sheet.i === BOT ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : [];
+    title = sheet.i === ME ? 'Your Thane' : "The opponent's Thane"; body = `<div class="panel cmdbox k-${c.color}">${cmdHtml(sheet.i, list, hit)}</div>`;
+  } else if (sheet.t === 'feed') { title = 'What happened'; body = `<div class="sheetlog">${log.slice(0, 60).map((l) => `<div class="${l.who === ME ? 'me' : l.who === BOT ? 'foe' : ''}">${esc(l.text)}</div>`).join('')}</div>`; }
+  return `<div class="sheetveil" ${close}><div class="sheet" role="dialog" aria-label="${esc(title)}"><div class="sheethead"><b>${esc(title)}</b><button class="sheetclose">Close</button></div>${body}</div></div>`;
+}
+function renderPhone(list) {
+  if (atkAim || cmdAim || thaneAim || sel !== null) sheet = null;   // choosing a target: the board has to be in view
+  for (const i of [BOT, ME]) { $(`p-cmd-${i}`).innerHTML = stripHtml(i, list); $(`p-cmd-${i}`).className = `p-strip ${i === ME ? 'me' : 'foe'} k-${m.players[i].cmd ? m.players[i].cmd.color : 'neutral'}`; $(`p-lanes-${i}`).innerHTML = [0, 1, 2].map((k) => cellHtml(i, k, list)).join(''); }
+  $('p-hand').innerHTML = m.players[ME].hand.map((c, h) => miniHtml(c, h, list)).join('') || '<span class="empty">no cards in hand</span>';
+  tray(list);
+  const aiming = atkAim || cmdAim || thaneAim || sel !== null;
+  if (aiming) $('p-actions').innerHTML = `<button ${on(() => { atkAim = null; cmdAim = null; thaneAim = false; sel = null; render(); })}>Cancel</button>` + $('p-actions').innerHTML;
+  $('p-feed').innerHTML = `<button class="feedline" ${on(() => { sheet = { t: 'feed' }; render(); })}>${log.length ? esc(log[0].text) : ''}</button>`;
+  $('p-sheet').innerHTML = sheetHtml(list);
+  $('pileview').innerHTML = pile === null ? '' : pileHtml(pile === ME ? 'Your scrap pile' : "The opponent's scrap pile", m.players[pile].scrap);
+  reword($('phoneui'));
+}
 function tray(list) {
   const q = asked(), btn = (label, a, cls = '', t = '') => `<button class="go ${cls}" ${on(() => act(a))}${t ? tipBtn(t) : ''}>${label}</button>`;
   let h = '', info = '', acts = '';
@@ -6177,10 +6330,11 @@ function tray(list) {
     else acts += btn('End turn', { type: 'end' }, list.some((a) => a.type !== 'end') ? '' : 'primary', o().resource === 'pool' ? 'Ends your turn. Mana you keep can pay for one instant when you are attacked.' : 'Ends your turn.');
   }
   if (q && sel !== null && q.kind === 'respond') { const c = m.players[ME].hand[sel], plain = c && list.find((a) => a.type === 'play' && a.hand === sel && !a.target); if (plain) acts = btn(`Play ${esc(c.name)}`, plain, 'primary') + acts; }
-  $('tray-h').innerHTML = h; $('info').innerHTML = info; $('actions').innerHTML = acts;
+  E('tray-h').innerHTML = h; E('info').innerHTML = info; E('actions').innerHTML = acts;
 }
 function render() {
   reg = [];
+  if (PHONE) return renderPhone(opts());
   const list = opts(), v = o(), n = v.board === 'bench' ? 4 : 3, ks = Array.from({ length: n }, (_, k) => k);
   $('score-1').innerHTML = scoreHtml(BOT); $('score-0').innerHTML = scoreHtml(ME);
   if (SOLO) for (const i of [ME, BOT]) { const c = m.players[i].cmd, hit = c && i === BOT ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : []; $(`cmd-${i}`).innerHTML = c ? cmdHtml(i, list, hit) : ''; $(`cmd-${i}`).className = c ? `panel cmdbox k-${c.color}${hit.length ? ' glow' : ''}${hit.length ? ' hitme' : ''}` : 'nocmd';
@@ -6199,11 +6353,11 @@ function render() {
 const vitals = () => { const x = new Map(); m.players.forEach((p, i) => { p.bots.forEach((b, k) => { if (b) x.set(b.card.uid, { left: V.leftOf(b), slot: `slot-${i}-${k}` }); }); x.set(`hp-${i}`, { left: m.o.win === 'commander' ? p.cmd.health : m.o.win === 'health' ? p.health : p.kills }); }); return x; };
 async function step(a) {
   const game = m;   // a new match may be started while this action is still being shown: then it is dropped
-  busy = true; fresh = 0; sel = null; cmdAim = null; atkAim = null; thaneAim = false;
+  busy = true; fresh = 0; sel = null; cmdAim = null; atkAim = null; thaneAim = false; sheet = null;
   // an attack is shown before it lands: the fighter jumps at the card it hits, or at the other Thane's box
   if (a.type === 'attack') {
     const i = m.actor, me = m.players[i].bots[a.slot], foe = m.players[1 - i];
-    const t = a.at === 'cmd' ? $(`cmd-${1 - i}`) : foe.bots[a.at ?? a.slot] || foe.bots[0];
+    const t = a.at === 'cmd' ? E(`cmd-${1 - i}`) : foe.bots[a.at ?? a.slot] || foe.bots[0];
     if (me && t) await Anim.lunge(me.card.uid, t.card ? t.card.uid : t, a.kind === 'big' ? 420 : 340, 0.7);
   }
   const usedCmd = a.type === 'cmd' ? m.actor : null;
@@ -6213,7 +6367,7 @@ async function step(a) {
   V.apply(m, a);
   pull(); render();
   const jobs = [Anim.flip(snap)], now = vitals();
-  if (usedCmd !== null && $(`cmd-${usedCmd}`)) jobs.push(Anim.pulse($(`cmd-${usedCmd}`), 600));
+  if (usedCmd !== null && E(`cmd-${usedCmd}`)) jobs.push(Anim.pulse(E(`cmd-${usedCmd}`), 600));
   for (const [k, w] of was) {
     const x = now.get(k);
     if (!x) { jobs.push(Anim.float(w.slot, 'destroyed', 'dmg', 1100), Anim.shake(w.slot)); continue; }
@@ -6243,6 +6397,13 @@ for (const id of ['me-color', 'bot-color']) {
 }
 $('speed').addEventListener('change', (e) => { Anim.cfg.speed = Number(e.target.value); });
 $('new').addEventListener('click', start);
+if (SOLO && $('layout')) {
+  const apply = () => { document.body.classList.toggle('phone', PHONE); document.body.classList.remove('show-menu'); sheet = null; };
+  $('layout').value = layoutSaved() || 'auto'; apply();
+  $('layout').addEventListener('change', (e) => { const v = e.target.value; try { if (v === 'auto') localStorage.removeItem('thane-layout'); else localStorage.setItem('thane-layout', v); } catch { /* private mode: the choice holds for this visit */ } PHONE = v === 'auto' ? layoutAuto() : v === 'phone'; apply(); render(); });
+  $('menu-close').addEventListener('click', () => document.body.classList.remove('show-menu'));
+  $('p-new').addEventListener('click', start);
+}
 if (SOLO) for (const k of ['abilities', 'commander']) { $(`opt-${k}`).checked = four[k]; $(`opt-${k}`).addEventListener('change', (e) => { four[k] = e.target.checked; history.replaceState(null, '', `?abilities=${four.abilities ? 1 : 0}&commander=${four.commander ? 1 : 0}`); start(); }); }
 start();
 
