@@ -1082,15 +1082,15 @@ const COMMAND = { name: 'Frontline: Commander', board: 'row', resource: 'pool', 
 /** Thane: the default game of the page (dist/thane.html). Frontline with a commander (called a Thane), the bots' abilities,
  *  two Barricades a deck (walls: 2 mana, 14 HP, no attack), and card effects that may take a Thane above 20.
  *  Pass the card pool as o.pool to build decks with the Thane set's gear and instants. */
-const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true, restSwap: 'R1' };
+const THANE = { ...COMMAND, name: 'Thane', abilities: true, defenders: 2, defHit: 0, defHp: 14, defCost: 2, cardsPastCap: true, restSwap: 'own' };
 /** One commander a colour. Everything it does is for, or counts, your bots of its colour. */
 const COMMANDERS = {
-  'cinder-marshal': { name: 'Cinder Marshal', deck: 'Ember Host', color: 'red', small: (o) => `Each of their bots facing one of your red bots takes ${o.cmdN + 1}.`, big: (o) => `Each of their bots takes ${o.cmdN - 1}, and 1 more for every red bot you have.` },
-  'warden-prime': { name: 'Warden Prime', deck: 'Steel Wall', color: 'chrome', small: (o) => `Each of your chrome bots gains ${o.cmdN} HP for good.`, big: (o) => `Shield each of your chrome bots, each gains ${o.cmdN} HP for good and 1 damage on it is repaired.` },
-  'ledger-queen': { name: 'Ledger Queen', deck: 'Gilded Ledger', color: 'gold', small: () => 'If you have a gold bot in play: draw a card and gain 2 mana now.', big: (o) => `If you have a gold bot in play: draw 2 cards, gain 3 mana now, and each of your gold bots gains ${o.cmdN} HP for good.` },
-  'arc-regent': { name: 'Arc Regent', deck: 'Storm Circuit', color: 'volt', small: (o) => `One of their bots takes ${o.cmdN + 1}, if you have a volt bot in play.`, big: () => 'Each of your volt bots hits the bot facing it with its small attack plus 1, on top of its own attack.' },
-  'grove-mother': { name: 'Grove Mother', deck: 'Deep Root', color: 'moss', small: (o) => `Repair ${o.cmdN + 2} damage on each of your moss bots.`, big: (o) => `Repair all damage on your moss bots; each gains ${o.cmdN} HP for good.` },
-  'null-vicar': { name: 'Null Vicar', deck: 'Hollow Choir', color: 'void', small: (o) => `Each of their bots facing one of your void bots takes ${o.cmdN}.`, big: (o) => `Each of their bots facing one of your void bots takes ${o.cmdN + 1}, and your bot is repaired by 2.` },
+  'cinder-marshal': { rest: 'R11b', name: 'Cinder Marshal', deck: 'Ember Host', color: 'red', small: (o) => `Each of their bots facing one of your red bots takes ${o.cmdN + 1}.`, big: (o) => `Each of their bots takes ${o.cmdN - 1}, and 1 more for every red bot you have.` },
+  'warden-prime': { rest: 'R2', name: 'Warden Prime', deck: 'Steel Wall', color: 'chrome', small: (o) => `Each of your chrome bots gains ${o.cmdN} HP for good.`, big: (o) => `Shield each of your chrome bots, each gains ${o.cmdN} HP for good and 1 damage on it is repaired.` },
+  'ledger-queen': { rest: 'R7', name: 'Ledger Queen', deck: 'Gilded Ledger', color: 'gold', small: () => 'If you have a gold bot in play: draw a card and gain 2 mana now.', big: (o) => `If you have a gold bot in play: draw 2 cards, gain 3 mana now, and each of your gold bots gains ${o.cmdN} HP for good.` },
+  'arc-regent': { rest: 'R5', name: 'Arc Regent', deck: 'Storm Circuit', color: 'volt', small: (o) => `One of their bots takes ${o.cmdN + 1}, if you have a volt bot in play.`, big: () => 'Each of your volt bots hits the bot facing it with its small attack plus 1, on top of its own attack.' },
+  'grove-mother': { rest: 'R1', name: 'Grove Mother', deck: 'Deep Root', color: 'moss', small: (o) => `Repair ${o.cmdN + 2} damage on each of your moss bots.`, big: (o) => `Repair all damage on your moss bots; each gains ${o.cmdN} HP for good.` },
+  'null-vicar': { rest: 'R8b', name: 'Null Vicar', deck: 'Hollow Choir', color: 'void', small: (o) => `Each of their bots facing one of your void bots takes ${o.cmdN}.`, big: (o) => `Each of their bots facing one of your void bots takes ${o.cmdN + 1}, and your bot is repaired by 2.` },
 };
 /** The commander a deck of that colour gets when none is named. */
 const commanderOf = (color) => Object.keys(COMMANDERS).find((k) => COMMANDERS[k].color === color);
@@ -1099,7 +1099,7 @@ const DEFAULTS = { cmdHealth: 20, toll: { common: 3, uncommon: 3, rare: 4, legen
   wall: 0 /* HP of the wall each player starts with: it cannot attack, is worth nothing, and a bot may be played in its place */, walls: 'middle' /* or 'all' three lanes */,
   defenders: 0 /* copies of the 1-mana Bulwark in a deck, in place of its weakest commons */, defHp: 12, defHit: 1,
   mulligan: null /* 'pick': once, before the first turn, put any cards of your hand under the deck and draw as many · 'redraw': once, shuffle the hand back and draw one fewer · 'cycle': once a turn discard a card to draw one */,
-  restSwap: null /* an id of ABIL with slot 'rest' (R1 = Muster): every commander may do that instead of resting, at no health */,
+  restSwap: null /* what a commander may do instead of resting, at no health: 'own' = each commander's own (COMMANDERS[id].rest; it may have none), an id of ABIL with slot 'rest' = that one for everyone (for sims), null = none */,
   give: null /* [ids, ids]: further abilities of ABIL each player's commander has, for trials (docs/thane-ability-sims.md) */,
   recruitOpen: false /* a lane that holds only a Recruit still counts as open: the fighter opposite may hit the commander */,
   recruitReady: true /* may a Recruit attack on the turn it is made? */, swapCost: 0 /* health the rest swap costs */,
@@ -1504,7 +1504,9 @@ function make(m, i, kind, slot) {
   if (has(m, i, 'P10') && !m.stamping) { const k = p.bots.findIndex((b) => !b); if (k >= 0) { m.stamping = true; make(m, i, kind, k); m.stamping = false; } }
 }
 /** Does that player's commander have that trial ability? */
-const has = (m, i, id) => m.o.restSwap === id || !!(m.o.give && m.o.give[i] && m.o.give[i].includes(id));
+/** The rest swap of that player's commander in this match, or null. */
+const swapOf = (m, i) => { const r = m.o.restSwap, c = m.players[i].cmd; return !r || !c ? null : r === 'own' ? c.rest || null : r; };
+const has = (m, i, id) => swapOf(m, i) === id || !!(m.o.give && m.o.give[i] && m.o.give[i].includes(id));
 const emptyOf = (m, i) => m.players[i].bots.map((b, k) => (b ? -1 : k)).filter((k) => k >= 0).map((slot) => ({ side: i, slot }));
 const theirsOf = (m, i) => mine(m, other(i));
 /** The trial abilities (docs/thane-ability-options.md ids). slot: rest (free, instead of the rest), small / big (the usual
@@ -1517,6 +1519,9 @@ const ABIL = {
   R8: { name: 'Patch', slot: 'rest', text: 'Repair 2 on one of your bots.', t: (m, i) => mine(m, i).filter((t) => botAt(m, t).dmg > 0), run: (m, i, t) => { const b = botAt(m, t); b.dmg = Math.max(0, b.dmg - 2); } },
   R11: { name: 'Needle', slot: 'rest', text: '1 damage to one of their bots.', t: theirsOf, run: (m, i, t) => hurt(m, t, 1) },
   R19: { name: 'Deep Rest', slot: 'rest', text: 'Gain 2 health (not above the start), but your bots may only make small attacks this turn.', t: (m, i) => (!m.bigMade && m.players[i].cmd.health < capOf(m.o) ? [null] : []), run: (m, i) => { gain(m, i, 2, 'Deep Rest', true); m.smallOnly = true; } },
+  // the two rest swaps that read "strong" in the first batch, with their fix (docs/thane-ability-sims.md)
+  R8b: { name: 'Patch', slot: 'rest', text: 'Repair 1 on one of your bots.', t: (m, i) => mine(m, i).filter((t) => botAt(m, t).dmg > 0), run: (m, i, t) => { const b = botAt(m, t); b.dmg = Math.max(0, b.dmg - 1); } },
+  R11b: { name: 'Needle', slot: 'rest', text: '1 damage to one of their bots that is already damaged.', t: (m, i) => theirsOf(m, i).filter((t) => botAt(m, t).dmg > 0), run: (m, i, t) => hurt(m, t, 1) },
   S1: { name: 'Press Gang', slot: 'small', text: 'Put two Recruits in empty lanes.', t: (m, i) => (emptyOf(m, i).length ? [null] : []), run: (m, i) => { for (let k = 0; k < 2; k++) { const t = emptyOf(m, i)[0]; if (t) make(m, i, 'recruit', t.slot); } } },
   S2: { name: 'Volley', slot: 'small', text: '2 damage to one bot, or 1 to their commander.', t: (m, i) => [...theirsOf(m, i), { side: other(i), slot: 'cmd' }], run: (m, i, t) => { if (t.slot === 'cmd') { const c = m.players[t.side].cmd; c.health -= 1; c.direct = (c.direct || 0) + 1; } else hurt(m, t, 2); } },
   S4: { name: 'Hold Fast', slot: 'small', text: 'One of their bots cannot attack on its next turn.', t: (m, i) => theirsOf(m, i).filter((t) => !botAt(m, t).wall && !botAt(m, t).stun), run: (m, i, t) => { botAt(m, t).stun = true; } },
@@ -1539,7 +1544,7 @@ const ABIL = {
 };
 /** What the commander's trial abilities offer now, as cmd actions (mode = 'x:' + id). */
 function extraOptions(m, i) {
-  const c = m.players[i].cmd, o = m.o, out = [], ids = [...new Set([o.restSwap, ...((o.give && o.give[i]) || [])].filter(Boolean))];
+  const c = m.players[i].cmd, o = m.o, out = [], ids = [...new Set([swapOf(m, i), ...((o.give && o.give[i]) || [])].filter(Boolean))];
   for (const id of ids) {
     const a = ABIL[id]; if (!a.run) continue;
     const price = a.slot === 'rest' ? o.swapCost : a.slot === 'small' ? o.cmdSmall : a.slot === 'big' ? o.cmdBig : a.cost;
@@ -1732,7 +1737,7 @@ function clone(m) {
   return { ...m, log: [], ask: [...m.ask], played: { ...m.played }, once: { ...(m.once || {}) }, pending: m.pending ? { ...m.pending } : null, players: m.players.map((p) => ({ ...p, deck: [...p.deck], hand: [...p.hand], scrap: [...p.scrap], bots: p.bots.map((b) => (b ? { ...b } : null)), auras: [...(p.auras || [])], trialPlays: { ...(p.trialPlays || {}) }, cmd: p.cmd ? { ...p.cmd, count: { ...p.cmd.count } } : undefined })) };
 }
 
-return { VERSIONS, COMMAND, THANE, COMMANDERS, commanderOf, DEFAULTS, RARITY, other, WORDS, speak, NEED, BOT_COST, BULWARK, shape, cost, usable, GEAR, EFFECT, POOL, poolText, gearText, describe, ABILITY, abilityText, botsOf, botAt, maxOf, leftOf, energyOf, needOf, hitOf, killsFor, canPay, reach, TRIAL, auras, capOf, buildDeck, newMatch, MADE, has, ABIL, cmdOptions, options, apply, clone };
+return { VERSIONS, COMMAND, THANE, COMMANDERS, commanderOf, DEFAULTS, RARITY, other, WORDS, speak, NEED, BOT_COST, BULWARK, shape, cost, usable, GEAR, EFFECT, POOL, poolText, gearText, describe, ABILITY, abilityText, botsOf, botAt, maxOf, leftOf, energyOf, needOf, hitOf, killsFor, canPay, reach, TRIAL, auras, capOf, buildDeck, newMatch, MADE, swapOf, has, ABIL, cmdOptions, options, apply, clone };
 })();
 const M_versions_bots = (() => {
 /**
@@ -5868,7 +5873,7 @@ const HOW = () => {
   if (v.defenders) L.push(`Each deck holds ${v.defenders} <b>Barricades</b>: walls with ${v.defHp} HP that cannot attack. A lane with a wall in it is not open.`);
   if (v.pool) L.push('<b>Gear and instants have colours.</b> A coloured gear fits only a bot of its colour; a coloured instant needs a bot of its colour (the card says which way). Colourless ones work for anyone and cost 1 more. Some instants last <b>until the end of the turn</b> and show as a tag on the bot. "Rare art" on a card is a rarer picture only.');
   if (v.abilities) L.push('Some bots have an <b>ability</b>, the bold line on the card (hover for it). Most commons have none.');
-  if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). ${v.restSwap ? `Or, for no health, <b>${V.ABIL[v.restSwap].name}</b>: ${V.ABIL[v.restSwap].text.replace(/^./, (x) => x.toLowerCase())} A Recruit is not a card: it takes no gear and costs you ${(v.madeToll || {}).recruit || 0} when it is destroyed. ` : ''}<b>If you use none of them, it rests by itself when you end your turn: +1 health</b>, never above ${v.cmdHealth}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
+  if (v.win === 'commander') L.push(`<b>Each turn your commander</b> may use its small ability (costs ${v.cmdSmall} of its health) or its big one (costs ${v.cmdBig}). ${v.restSwap ? `Some commanders also have a <b>rest swap</b>, the third line in the box with a 0: at no health, it does that instead of resting (yours: ${V.swapOf(m, ME) ? `<b>${V.ABIL[V.swapOf(m, ME)].name}</b>, ${V.ABIL[V.swapOf(m, ME)].text.replace(/^./, (x) => x.toLowerCase())}` : 'none'}). A Recruit or a Sandbag an ability puts in a lane is not a card: it takes no gear, a card may be played in its place, and it costs nothing when it is destroyed. ` : ''}<b>If you use none of them, it rests by itself when you end your turn: +1 health</b>, never above ${v.cmdHealth}. Its abilities work for, or count, your bots of its colour, so a one-colour deck gets the most from it. It cannot spend its last health.`);
   L.push('Gear is fitted to a bot and stays; an instant happens once. Hover over anything (or press and hold on a phone) for what it means.');
   return L;
 };
@@ -5933,7 +5938,8 @@ function scoreHtml(i) {
 function cmdHtml(i, list, hit = []) {
   const c = m.players[i].cmd, v = o(), mine = i === ME, used = m.cmdUsed && m.turn === i;
   const rows = [['small', `−${v.cmdSmall}`, 'Small', c.small(v)], ['big', `−${v.cmdBig}`, 'Big', c.big(v)]];
-  if (v.restSwap) rows.push([`x:${v.restSwap}`, '0', V.ABIL[v.restSwap].name, V.ABIL[v.restSwap].text]);   // instead of resting, at no health
+  const sw = V.swapOf(m, i);   // this commander's own rest swap, if it has one: instead of resting, at no health
+  if (sw) rows.push([`x:${sw}`, '0', V.ABIL[sw].name, V.ABIL[sw].text]);
   // the rest is not a button: a commander that used no ability gains 1 when its owner's turn ends
   const myTurn = m.turn === i && m.winner === null, restText = myTurn ? (used ? 'No rest this turn' : c.health >= v.cmdHealth ? 'At full health' : `Rests at the end of ${mine ? 'your' : 'its'} turn: +1 health`) : c.did === 'rest' ? 'Rested: +1 health' : c.did ? 'Used an ability: no rest' : c.health >= v.cmdHealth ? 'At full health' : 'Rests when it uses no ability';
   const rest = `<div class="line rest${!used && myTurn && c.health < v.cmdHealth ? ' on' : ''}"${tip(`A commander that uses no ability in its owner's turn rests when the turn ends: +1 health, never above ${v.cmdHealth}. Using the small or the big ability means no rest that turn.`)}><span class="price plus">+1</span>${restText}</div>`;
@@ -5943,8 +5949,8 @@ function cmdHtml(i, list, hit = []) {
     if (!mine) return `<div class="line${didIt ? ' did' : ''}"${tip(t)}>${body}${didIt ? ' <i>(its last turn)</i>' : ''}</div>`;
     const as = list.filter((a) => a.type === 'cmd' && a.mode === mode);
     // an ability that needs a target: one button; pressing it lights the bots it may pick, a click on one uses it
-    if (as.some((a) => a.target)) return `<button class="go${cmdAim === mode ? ' on' : ''}" ${on(() => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; render(); })}${tipBtn(`${t} Press, then click one of the glowing ${swap ? 'lanes' : 'bots'}.`)}>${body}${cmdAim === mode ? ` <i>Pick a glowing ${swap ? 'lane' : 'bot'} (press again to cancel).</i>` : ''}</button>`;
-    const why = used ? 'Your commander has used an ability this turn' : m.actor !== ME || m.ask.length ? 'Not now' : !swap && c.health <= (mode === 'small' ? v.cmdSmall : v.cmdBig) ? 'It cannot spend its last health' : swap ? 'No empty lane' : 'Nothing for it to do right now';
+    if (as.some((a) => a.target)) return `<button class="go${cmdAim === mode ? ' on' : ''}" ${on(() => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; render(); })}${tipBtn(`${t} Press, then click one of the glowing ${as[0].target && !V.botAt(m, as[0].target) ? 'lanes' : 'bots'}.`)}>${body}${cmdAim === mode ? ` <i>Pick a glowing ${as[0].target && !V.botAt(m, as[0].target) ? 'lane' : 'bot'} (press again to cancel).</i>` : ''}</button>`;
+    const why = used ? 'Your commander has used an ability this turn' : m.actor !== ME || m.ask.length ? 'Not now' : !swap && c.health <= (mode === 'small' ? v.cmdSmall : v.cmdBig) ? 'It cannot spend its last health' : 'Nothing for it to do right now';
     return as.length ? `<button class="go" ${on(() => act(as[0]))}${tipBtn(t)}>${body}</button>` : `<button disabled${tipBtn(`${why}. ${t}`)}>${body}${didIt && used ? ' <i>(done)</i>' : ''}</button>`;
   }).join('');
   const target = hit.length ? `<button class="go primary" ${hit.length === 1 ? on(() => act(hit[0])) : 'disabled'}${tipBtn('One of your bots has nothing opposite it: its small attack (gear counts) may hit this commander instead of a bot.')}>${hit.length === 1 ? `Hit it for ${V.hitOf(m.players[ME].bots[hit[0].slot], 'small')} with ${esc(m.players[ME].bots[hit[0].slot].name)}` : 'Open lanes: use the buttons on your bots'}</button>` : '';
