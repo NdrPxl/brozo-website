@@ -1694,7 +1694,7 @@ const ABIL = {
   // ---- rows added for the eighteen new commanders; the b / x ids are a sized-down or simplified version of the row ----
   S5x: { name: 'Live Wire', slot: 'small', text: 'One of your bots gets +2 to its attacks this turn.', t: (m, i) => mine(m, i).filter((t) => { const b = botAt(m, t); return !b.acted && !b.arrived && !b.wall && (b.two || b.small > 0); }), run: (m, i, t) => { botAt(m, t).boost = (botAt(m, t).boost || 0) + 2; } },
   S7b: { name: 'Field Promotion', slot: 'small', text: 'One of your bots gains +1 to its attacks for good.', t: (m, i) => mine(m, i).filter((t) => !botAt(m, t).wall && !botAt(m, t).defender && (botAt(m, t).two || botAt(m, t).small > 0)), run: (m, i, t) => { const b = botAt(m, t); b.small += 1; if (b.two) b.big += 1; } },
-  S8: { name: 'War Cry', slot: 'small', text: 'Each of your bots gets +1 to its attacks this turn and may attack even if it was played this turn.', t: (m, i) => (m.turnNo > 1 && mine(m, i).some((t) => !botAt(m, t).acted && !botAt(m, t).wall && (botAt(m, t).two || botAt(m, t).small > 0)) ? [null] : []), run: (m, i) => { for (const b of botsOf(m.players[i])) if (!b.wall && (b.two || b.small > 0)) { b.boost = (b.boost || 0) + 1; b.arrived = false; } } },
+  S8: { name: 'War Cry', slot: 'small', text: 'Each of your bots gets +1 to its attacks this turn and may attack even if it was played this turn.', t: (m, i) => (m.turnNo > 1 && mine(m, i).some((t) => (!botAt(m, t).acted || botAt(m, t).arrived) && !botAt(m, t).wall && (botAt(m, t).two || botAt(m, t).small > 0)) ? [null] : []), run: (m, i) => { for (const b of botsOf(m.players[i])) if (!b.wall && (b.two || b.small > 0)) { b.boost = (b.boost || 0) + 1; if (b.arrived) { b.arrived = false; b.acted = false; } } } },  // a fighter played this turn has acted=true from fresh(): wake it
   S12x: { name: 'Cut the Supply', slot: 'small', text: 'They discard a card at random. If they have none, their commander loses 2.', t: () => [null], run: (m, i) => { const q = m.players[other(i)]; if (q.hand.length) { m.rs = (m.rs * 1664525 + 1013904223) >>> 0; const c = q.hand.splice(m.rs % q.hand.length, 1)[0]; q.scrap.push(c); say(m, other(i), `discard{s} ${c.name}`); } else { q.cmd.health -= 2; q.cmd.direct = (q.cmd.direct || 0) + 2; } } },
   S14: { name: 'Blood Price', slot: 'small', text: 'Destroy one of your own bots at no kill cost: draw 2 cards.', t: (m, i) => (m.players[i].deck.length ? mine(m, i).filter((t) => !botAt(m, t).wall) : []), run: (m, i, t) => { const p = m.players[i], h = p.cmd.health, tl = p.cmd.tolls; destroy(m, t); p.cmd.health = h; p.cmd.tolls = tl; draw(m, i, 2); } },
   S16: { name: 'Stand-In', slot: 'small', text: 'Put the sturdiest bot in your hand that costs 2 or less into an empty lane, free.', t: (m, i) => (m.players[i].hand.some((c) => c.kind === 'bot' && cost(c, m.o) <= 2) ? emptyOf(m, i) : []), run: (m, i, t) => ambush(m, i, t, 2) },
@@ -1945,7 +1945,10 @@ function playCard(m, i, a) {
     if (p.cmd && has(m, i, 'P5') && c.color === p.cmd.color) p.bots[t.slot].max += 1;
     say(m, i, `play{s} ${c.name}`); if (abil(m, c, 'cache')) draw(m, i, c.ability.n); return; }
   if (c.trial) p.trialPlays[c.id] = (p.trialPlays[c.id] || 0) + 1;
-  if (c.kind === 'gear') { if (c.pool) p.trialPlays[c.id] = (p.trialPlays[c.id] || 0) + 1; botAt(m, t).gear = c; return say(m, i, `fit{s} ${c.name} to ${botAt(m, t).name}`); }
+  if (c.kind === 'gear') { if (c.pool) p.trialPlays[c.id] = (p.trialPlays[c.id] || 0) + 1; const g = botAt(m, t); g.gear = c;
+    // quick gear on a fighter that arrived this turn and has not attacked: it may attack now (fresh() marks a new fighter as having acted)
+    if (c.gear === 'quick' && g.arrived) g.acted = false;
+    return say(m, i, `fit{s} ${c.name} to ${g.name}`); }
   if (c.kind === 'aura') { p.auras.push(t ? { aura: c.aura, slot: t.slot, name: c.name } : { aura: c.aura, name: c.name }); return say(m, i, `play{s} ${c.name}${t ? ` on lane ${t.slot + 1}` : ''}`); }
   const e = c.effect;
   p.scrap.push(c);
@@ -9096,7 +9099,7 @@ function cmdHtml(i, list, hit = []) {
     if (!mine) return `<div class="line${didIt ? ' did' : ''}"${tip(t)}>${body}${didIt ? ' <i>(its last turn)</i>' : ''}</div>`;
     const as = list.filter((a) => a.type === 'cmd' && a.mode === mode);
     // an ability that needs a target: one button; pressing it lights the bots it may pick, a click on one uses it
-    if (as.some((a) => a.target)) return `<button class="go${cmdAim === mode ? ' on' : ''}" ${on(() => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; render(); })}${tipBtn(`${t} Press, then click one of the glowing ${as[0].target && !V.botAt(m, as[0].target) ? 'lanes' : 'bots'}.`)}>${body}${cmdAim === mode ? ` <i>Pick a glowing ${as[0].target && !V.botAt(m, as[0].target) ? 'lane' : 'bot'} (press again to cancel).</i>` : ''}</button>`;
+    if (as.some((a) => a.target)) return `<button class="go${cmdAim === mode ? ' on' : ''}" ${on(() => { cmdAim = cmdAim === mode ? null : mode; sel = null; atkAim = null; render(); })}${tipBtn(`${t} Press, then click one of the glowing ${as[0].target && !V.botAt(m, as[0].target) ? 'lanes' : 'bots'}.`)}>${body}${cmdAim === mode ? ` <i>Pick a glowing ${as[0].target && !V.botAt(m, as[0].target) ? 'lane' : 'bot'}${as.some((a) => a.target && a.target.slot === 'cmd') ? ' or their glowing Thane' : ''} (press again to cancel).</i>` : ''}</button>`;
     const why = used ? 'Your commander has used an ability this turn' : m.actor !== ME || m.ask.length ? 'Not now' : !swap && c.health <= (mode === 'small' ? v.cmdSmall : v.cmdBig) ? 'It cannot spend its last health' : 'Nothing for it to do right now';
     return as.length ? `<button class="go" ${on(() => act(as[0]))}${tipBtn(t)}>${body}</button>` : `<button disabled${tipBtn(`${why}. ${t}`)}>${body}${didIt && used ? ' <i>(done)</i>' : ''}</button>`;
   }).join('');
@@ -9250,7 +9253,11 @@ function render() {
   if (PHONE) return renderPhone(opts());
   const list = opts(), v = o(), n = v.board === 'bench' ? 4 : 3, ks = Array.from({ length: n }, (_, k) => k);
   $('score-1').innerHTML = scoreHtml(BOT); $('score-0').innerHTML = scoreHtml(ME);
-  if (SOLO) for (const i of [ME, BOT]) { const c = m.players[i].cmd, hit = c && i === BOT ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : []; $(`cmd-${i}`).innerHTML = c ? cmdHtml(i, list, hit) : ''; $(`cmd-${i}`).className = c ? `panel cmdbox k-${c.color}${hit.length ? ' glow' : ''}${hit.length ? ' hitme' : ''}` : 'nocmd';
+  if (SOLO) for (const i of [ME, BOT]) { const c = m.players[i].cmd, hit = c && i === BOT ? list.filter((a) => a.at === 'cmd' && (!atkAim || (a.slot === atkAim.slot && a.kind === atkAim.kind))) : [];
+    // a Thane ability of mine being aimed that may pick their Thane (Volley): their box glows and a click uses it
+    const aimedCmd = c && i === BOT && cmdAim ? list.find((a) => a.type === 'cmd' && a.mode === cmdAim && a.target && a.target.slot === 'cmd') : null;
+    $(`cmd-${i}`).innerHTML = c ? cmdHtml(i, list, hit) : ''; $(`cmd-${i}`).className = c ? `panel cmdbox k-${c.color}${hit.length || aimedCmd ? ' glow hitme' : ''}` : 'nocmd';
+    if (aimedCmd) { $(`cmd-${i}`).onclick = (e) => { if (!e.target.closest('button')) act(aimedCmd); }; continue; }
     // a glowing Thane with one attack waiting on it: a click anywhere on the box makes that attack (its buttons keep their own clicks)
     $(`cmd-${i}`).onclick = hit.length === 1 ? (e) => { if (!e.target.closest('button')) act(hit[0]); } : hit.length > 1 ? (e) => { if (!e.target.closest('button')) { thaneAim = !thaneAim; sel = null; cmdAim = null; atkAim = null; render(); } } : null; }
   $('lanes').className = `b${n}`;
