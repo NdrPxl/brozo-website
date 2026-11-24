@@ -270,6 +270,32 @@ body.phone.show-menu header, body.phone.show-menu details { display: block; posi
 body.phone.show-menu header { top: 0; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; height: 52dvh; box-sizing: border-box; overflow-y: auto; border-bottom: 2px solid var(--gold); }
 body.phone.show-menu details { top: 52dvh; bottom: 0; overflow-y: auto; }
 body.phone.show-menu .phoneonly { display: block; min-height: 44px; } body.phone.show-menu header select { min-height: 40px; }
+
+/* whose turn: cyan box around the side that is playing */
+#board { position: relative; }
+#turnbox { position: absolute; border: 3px solid #3fd8ff; border-radius: 14px; pointer-events: none; z-index: 5;
+  box-shadow: 0 0 18px rgba(63,216,255,.55), inset 0 0 22px rgba(63,216,255,.12); transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease; }
+.p-lanes.turn { outline: 3px solid #3fd8ff; outline-offset: 3px; border-radius: 10px; box-shadow: 0 0 14px rgba(63,216,255,.5); }
+/* end of a match */
+#endfx { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; overflow: hidden; animation: endfade .4s ease both; }
+#endfx.win { background: radial-gradient(circle at 50% 40%, rgba(255,213,74,.25), rgba(8,10,16,.82) 60%); }
+#endfx.lose { background: radial-gradient(circle at 50% 45%, rgba(120,0,0,.35), rgba(4,2,4,.9) 65%); }
+#endfx.draw { background: rgba(8,10,16,.82); }
+#endfx canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#endfx .msg { position: relative; text-align: center; padding: 28px 40px; border-radius: 18px; background: rgba(12,12,18,.75); border: 2px solid rgba(255,255,255,.15); box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+#endfx h1 { font: 900 clamp(48px, 10vw, 96px)/1 Cinzel, Georgia, serif; letter-spacing: .06em; margin: 0 0 8px; }
+#endfx.win h1 { color: #ffd54a; text-shadow: 0 0 30px rgba(255,213,74,.6), 0 4px 0 #6b4a00; animation: pop .6s cubic-bezier(.2,1.6,.4,1) .1s both; }
+#endfx.lose h1 { color: #e23b3b; text-shadow: 0 0 30px rgba(200,0,0,.6), 0 4px 0 #2a0000; animation: rise .8s ease 1.1s both; }
+#endfx p { margin: 0 0 18px; font-size: 18px; opacity: .9; }
+#endfx.lose p, #endfx.lose .btns { animation: rise .6s ease 1.5s both; }
+#endfx .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+#endfx .scythe { position: absolute; width: min(70vw, 520px); left: 50%; top: 50%; transform-origin: 26% 96%; animation: sweep 1.2s cubic-bezier(.6,0,.2,1) both; filter: drop-shadow(0 10px 20px rgba(0,0,0,.8)); }
+@keyframes sweep { 0% { transform: translate(-150%, -60%) rotate(-70deg); opacity: 0; } 15% { opacity: 1; } 70% { transform: translate(-40%, -55%) rotate(40deg); } 100% { transform: translate(10%, -58%) rotate(28deg); opacity: .25; } }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes rise { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes endfade { from { opacity: 0; } to { opacity: 1; } }
+#endfx.calm *, #endfx.calm { animation: none !important; }
+#endfx.calm .scythe { transform: translate(-30%, -58%) rotate(28deg); opacity: .3; }
 </style>
 <main>
   <header>
@@ -281,7 +307,6 @@ body.phone.show-menu .phoneonly { display: block; min-height: 44px; } body.phone
     <label class="label" style="display:flex;align-items:center;gap:5px" title="On: bots have their abilities (the bold line on a card). Off: plain bots."><input type="checkbox" id="opt-abilities"> Abilities</label>
     <label class="label" title="The phone layout fits a portrait screen without scrolling; a tap on a card opens it in full. Auto picks by the screen.">Layout <select id="layout"><option value="auto">auto</option><option value="phone">phone</option><option value="desktop">desktop</option></select></label>
     <button id="p-new" class="phoneonly">New match</button><button id="menu-close" class="phoneonly">Close menu</button>
-
   </header>
   <div id="table" class="solo">
     <div class="panel" id="status"><h2 id="tray-h"></h2><div id="info"></div><div id="actions"></div><button id="new">New match</button></div>
@@ -9058,7 +9083,7 @@ function botHtml(b, side, slot, list) {
   const abl = v.abilities && V.abilityText(b) ? `<small class="ab"${tip(`Ability of this bot: ${V.abilityText(b)}`)}>${esc(V.abilityText(b))}</small>` : '';
   const lines = noAttack(b) ? `<span${tip('A wall: it cannot attack. While it stands its lane is not open, so the bot opposite cannot hit your commander.')}>Cannot attack. Holds its lane.</span>` : !b.two ? `<span${tip(TIP.small(b))}>Attack ${V.hitOf(b, 'small')}</span>` : `<span${tip(TIP.small(b))}>Small: hit ${V.hitOf(b, 'small')}</span><br><span${tip(TIP.big(b))}>${esc(b.move.name)}: hit ${V.hitOf(b, 'big')} (${v.resource === 'attach' ? 'needs' : 'costs'} ${V.needOf(b, 'big')}${SOLO && v.resource === 'pool' ? ' mana' : ''})</span>`;
   return `<div class="card bot k-${b.color}${b.made ? ' made' : ''}${small ? ' mini' : ''}${b.shield ? ' shielded' : ''}${card || viaThane ? ' glow go' : ''}${b.acted && side === m.turn ? ' done' : ''}" data-key="${b.card.uid}" ${click ? on(click) : ''}>${art ? `<div class="art" style="background-image:url(${art})"></div>` : ''}${b.shield ? '<div class="shield-fx"></div>' : ''}
-    <div class="name">${esc(b.name)}</div><div class="pw"${tip(TIP.left(b))}>${V.leftOf(b)}</div>${v.resource === 'attach' ? `<div class="en"${tip(TIP.energy(b))}><small>energy</small>${V.energyOf(b)}</div>` : ''}${v.win === 'kills' ? `<div class="kw${v.resource === 'attach' ? ' low' : ''}"${tip(TIP.kill(b, mine))}><small>kill</small>+${V.killsFor(m, b)}</div>` : v.win === 'commander' && b.made ? `<div class="kw toll madetag"${tip(`Made by a commander's ability: not a card. It takes no gear and goes nowhere when destroyed; that costs ${mine ? 'your' : "the opponent's"} commander ${(v.madeToll || {})[b.made] || 0} health.`)}><small>made</small>−${(v.madeToll || {})[b.made] || 0}</div>` : v.win === 'commander' ? `<div class="kw toll"${tip(`When this ${b.rarity || 'common'} bot is destroyed, ${mine ? 'your' : "the opponent's"} commander loses ${V.tollOf(b, v)} health.`)}><small>cost</small>−${V.tollOf(b, v)}</div>` : ''}${tags ? `<div class="tags">${tags}</div>` : ''}
+    <div class="name">${scopeEye(b)}${esc(b.name)}</div><div class="pw"${tip(TIP.left(b))}>${V.leftOf(b)}</div>${v.resource === 'attach' ? `<div class="en"${tip(TIP.energy(b))}><small>energy</small>${V.energyOf(b)}</div>` : ''}${v.win === 'kills' ? `<div class="kw${v.resource === 'attach' ? ' low' : ''}"${tip(TIP.kill(b, mine))}><small>kill</small>+${V.killsFor(m, b)}</div>` : v.win === 'commander' && b.made ? `<div class="kw toll madetag"${tip(`Made by a commander's ability: not a card. It takes no gear and goes nowhere when destroyed; that costs ${mine ? 'your' : "the opponent's"} commander ${(v.madeToll || {})[b.made] || 0} health.`)}><small>made</small>−${(v.madeToll || {})[b.made] || 0}</div>` : v.win === 'commander' ? `<div class="kw toll"${tip(`When this ${b.rarity || 'common'} bot is destroyed, ${mine ? 'your' : "the opponent's"} commander loses ${V.tollOf(b, v)} health.`)}><small>cost</small>−${V.tollOf(b, v)}</div>` : ''}${tags ? `<div class="tags">${tags}</div>` : ''}
     ${moves ? `<div class="moves">${moves}${abl}${flav(b)}</div>` : `<div class="txt">${lines}${abl ? `<br><b>${abl}</b>` : ''}${flav(b)}</div>`}</div>`;
 }
 const tipBtn = (t) => ` title="${esc(t)}" data-tip="${esc(t)}"`;
@@ -9143,7 +9168,7 @@ function thumbHtml(b, side, slot, list) {
   const tap = hit ? () => act(hit) : () => { sheet = { t: 'bot', side, slot }; render(); };
   const atk = noAttack(b) ? '<span class="at none">wall</span>' : `<span class="at"${tip(b.two ? `Small attack ${V.hitOf(b, 'small')}, big attack ${V.hitOf(b, 'big')} (costs ${V.needOf(b, 'big')} mana)` : `Attack ${V.hitOf(b, 'small')}`)}>${V.hitOf(b, 'small')}${b.two ? `<small>/</small>${V.hitOf(b, 'big')}` : ''}</span>`;
   return `<button class="thumb k-${b.color}${b.made ? ' made' : ''}${hit ? ' glow go' : can ? ' can go' : ''}${b.acted && side === m.turn ? ' done' : ''}${b.shield ? ' shielded' : ''}" data-key="${b.card.uid}" ${on(tap)} aria-label="${esc(b.name)}">${art ? `<span class="art" style="background-image:url(${art})"></span>` : ''}
-    <span class="nm">${esc(b.name)}</span><span class="hpn"${tip(TIP.left(b))}>${V.leftOf(b)}</span><span class="row">${atk}<span class="mks">${mine && !q && list.some((a) => a.type === 'attack' && a.slot === slot && a.at === 'cmd') ? `<i class="mk open"${tip('Its lane is open: its small attack can hit their commander')}>&#9650;</i>` : ''}${marks(b)}</span></span></button>`;
+    <span class="nm">${scopeEye(b)}${esc(b.name)}</span><span class="hpn"${tip(TIP.left(b))}>${V.leftOf(b)}</span><span class="row">${atk}<span class="mks">${mine && !q && list.some((a) => a.type === 'attack' && a.slot === slot && a.at === 'cmd') ? `<i class="mk open"${tip('Its lane is open: its small attack can hit their commander')}>&#9650;</i>` : ''}${marks(b)}</span></span></button>`;
 }
 function cellHtml(side, slot, list) {
   const b = m.players[side].bots[slot];
@@ -9199,7 +9224,7 @@ function sheetHtml(list) {
 }
 function renderPhone(list) {
   if (atkAim || cmdAim || thaneAim || sel !== null) sheet = null;   // choosing a target: the board has to be in view
-  for (const i of [BOT, ME]) { $(`p-cmd-${i}`).innerHTML = stripHtml(i, list); $(`p-cmd-${i}`).className = `p-strip ${i === ME ? 'me' : 'foe'} k-${m.players[i].cmd ? m.players[i].cmd.color : 'neutral'}`; $(`p-lanes-${i}`).innerHTML = [0, 1, 2].map((k) => cellHtml(i, k, list)).join(''); }
+  for (const i of [BOT, ME]) { $(`p-lanes-${i}`).classList.toggle('turn', m.turn === i && m.winner === null); $(`p-cmd-${i}`).innerHTML = stripHtml(i, list); $(`p-cmd-${i}`).className = `p-strip ${i === ME ? 'me' : 'foe'} k-${m.players[i].cmd ? m.players[i].cmd.color : 'neutral'}`; $(`p-lanes-${i}`).innerHTML = [0, 1, 2].map((k) => cellHtml(i, k, list)).join(''); }
   $('p-hand').innerHTML = m.players[ME].hand.map((c, h) => miniHtml(c, h, list)).join('') || '<span class="empty">no cards in hand</span>';
   tray(list);
   const aiming = atkAim || cmdAim || thaneAim || sel !== null;
@@ -9249,7 +9274,7 @@ function tray(list) {
   E('tray-h').innerHTML = h; E('info').innerHTML = info; E('actions').innerHTML = acts;
 }
 function render() {
-  reg = []; noteHeld();
+  reg = []; noteHeld(); endFx();
   if (PHONE) return renderPhone(opts());
   const list = opts(), v = o(), n = v.board === 'bench' ? 4 : 3, ks = Array.from({ length: n }, (_, k) => k);
   $('score-1').innerHTML = scoreHtml(BOT); $('score-0').innerHTML = scoreHtml(ME);
@@ -9267,6 +9292,7 @@ function render() {
   $('pileview').innerHTML = pile === null ? '' : pileHtml(pile === ME ? 'Your scrap pile' : "The opponent's scrap pile", m.players[pile].scrap);
   if (SOLO) reword($('table')), reword($('hand')), reword($('pileview'));
   $('log').innerHTML = log.slice(0, 60).map((l, k) => `<div class="${k < fresh ? 'new' : ''} ${l.who === ME ? 'me' : l.who === BOT ? 'foe' : ''}">${esc(l.text)}</div>`).join('');
+  turnBox();
 }
 
 // ---- playing ---------------------------------------------------------------------------------------------------------
@@ -9359,6 +9385,67 @@ if (qs.get('selftest') === '1') {
     setTimeout(tick, 5);
   };
   tick();
+}
+
+/* ---- whose turn: a cyan box around that side's lanes and score bar (desktop); the phone outlines that side's lanes ---- */
+function turnBox() {
+  const board = $('board'), lanes = $('lanes'); if (!board || !lanes) return;
+  let box = $('turnbox'); if (!box) { box = document.createElement('div'); box.id = 'turnbox'; board.appendChild(box); }
+  if (m.winner !== null) { box.hidden = true; return; }
+  const slots = [...lanes.children].filter((e) => !e.classList.contains('slotlabel')), n = slots.length / 2;
+  const els = [...(m.turn === ME ? slots.slice(n) : slots.slice(0, n)), $(`score-${m.turn}`)].filter(Boolean);
+  const b = board.getBoundingClientRect(); let r = null;
+  for (const e of els) { const q = e.getBoundingClientRect(); r = r ? { l: Math.min(r.l, q.left), t: Math.min(r.t, q.top), r: Math.max(r.r, q.right), b: Math.max(r.b, q.bottom) } : { l: q.left, t: q.top, r: q.right, b: q.bottom }; }
+  if (!r) return;
+  box.hidden = false; box.className = m.turn === ME ? 'me' : 'foe';
+  Object.assign(box.style, { left: `${r.l - b.left - 6}px`, top: `${r.t - b.top - 6}px`, width: `${r.r - r.l + 12}px`, height: `${r.b - r.t + 12}px` });
+}
+addEventListener('resize', () => { if (m && !PHONE) turnBox(); });
+
+/* ---- end of a match: Victory with confetti, or a scythe sweep and Defeat ---- */
+var endShown = null;   // var: render() runs before this line on load
+function endFx() {
+  const old = $('endfx');
+  if (!m || m.winner === null) { endShown = null; if (old) old.remove(); return; }
+  if (endShown === m || AUTO) return;
+  endShown = m;
+  const win = m.winner === ME, lose = m.winner === BOT, calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const why = { commander: 'Their Thane is down.', kills: 'On kill points.', health: 'Health at 0.', empty: 'No fighter left in play.', time: 'Out of turns.' }[m.how] || '';
+  const whyLose = { commander: 'Your Thane has fallen.', kills: 'On kill points.', health: 'Health at 0.', empty: 'No fighter left in play.', time: 'Out of turns.' }[m.how] || '';
+  const el = document.createElement('div'); el.id = 'endfx'; el.className = (win ? 'win' : lose ? 'lose' : 'draw') + (calm ? ' calm' : '');
+  const scythe = `<svg class="scythe" viewBox="0 0 220 220" aria-hidden="true"><defs><linearGradient id="sb" x1="0" x2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".6" stop-color="#9aa3ad"/><stop offset="1" stop-color="#4a525b"/></linearGradient></defs>
+    <path d="M58 212 L150 22" stroke="#5a3a22" stroke-width="10" stroke-linecap="round"/><path d="M58 212 L150 22" stroke="#7d5433" stroke-width="4" stroke-linecap="round"/>
+    <path d="M146 30 C 110 2, 40 4, 6 58 C 50 30, 104 30, 140 50 Z" fill="url(#sb)" stroke="#2b3036" stroke-width="2"/><rect x="138" y="22" width="16" height="22" rx="3" fill="#3a3f45" transform="rotate(26 146 33)"/></svg>`;
+  el.innerHTML = (win ? '<canvas></canvas>' : lose ? scythe : '') +
+    `<div class="msg" role="dialog" aria-live="assertive"><h1>${win ? 'Victory' : lose ? 'Defeat' : 'Draw'}</h1><p>${win ? 'You won. ' + why : lose ? whyLose : ''}</p>
+     <div class="btns"><button class="primary nm">New match</button><button class="look">See the board</button></div></div>`;
+  document.body.appendChild(el);
+  el.querySelector('.nm').onclick = () => { el.remove(); start(); };
+  el.querySelector('.look').onclick = () => el.remove();
+  if (win && !calm) confetti(el.querySelector('canvas'));
+}
+function confetti(cv) {
+  const ctx = cv.getContext('2d'), W = cv.width = innerWidth * devicePixelRatio, H = cv.height = innerHeight * devicePixelRatio, k = devicePixelRatio;
+  const cols = ['#3fd8ff', '#ffd54a', '#ff5d73', '#7be38f', '#b07cff', '#ffffff'];
+  const P = Array.from({ length: 220 }, () => ({ x: W / 2 + (Math.random() - .5) * W * .3, y: H * .35, vx: (Math.random() - .5) * 16 * k, vy: (-Math.random() * 18 - 6) * k,
+    w: (6 + Math.random() * 6) * k, h: (8 + Math.random() * 10) * k, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[Math.floor(Math.random() * cols.length)] }));
+  const t0 = performance.now();
+  (function f(t) {
+    if (!cv.isConnected) return;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of P) { p.vy += .45 * k; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2))); ctx.restore(); }
+    if (t - t0 < 5000) requestAnimationFrame(f); else ctx.clearRect(0, 0, W, H);
+  })(t0);
+}
+
+/* for headless tests: read the match and redraw */
+window.thaneDebug = { get m() { return m; }, render: () => render() };
+
+/* the teal eye (as on the Charge page): this fighter's attacks may hit any of their fighters, from its Scope gear */
+function scopeEye(b) {
+  if (!b || !b.gear || b.gear.gear !== 'scope') return '';
+  return `<span class="eye eye-free" role="img"${tip(`Teal eye: ${esc(b.gear.name)} lets its attacks hit any of their ${V.WORDS.units}, not only the one across.`)}><svg viewBox="0 0 24 14" aria-hidden="true"><path class="lid" d="M1.5 7C4.3 2.9 8 1.4 12 1.4s7.7 1.5 10.5 5.6c-2.8 4.1-6.5 5.6-10.5 5.6S4.3 11.1 1.5 7z"/><circle class="iris" cx="12" cy="7" r="3.6"/></svg></span>`;
 }
 
 })();
