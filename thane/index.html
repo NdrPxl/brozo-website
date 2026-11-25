@@ -278,7 +278,7 @@ body.phone.show-menu .phoneonly { display: block; min-height: 44px; } body.phone
 .p-lanes.turn { outline: 3px solid #3fd8ff; outline-offset: 3px; border-radius: 10px; box-shadow: 0 0 14px rgba(63,216,255,.5); }
 /* end of a match */
 #endfx { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; overflow: hidden; animation: endfade .4s ease both; }
-#endfx.win { background: radial-gradient(circle at 50% 40%, rgba(255,213,74,.25), rgba(8,10,16,.82) 60%); }
+#endfx.win { background: radial-gradient(circle at 50% 45%, rgba(40,32,10,.78), rgba(4,5,10,.93) 65%); }
 #endfx.lose { background: radial-gradient(circle at 50% 45%, rgba(120,0,0,.35), rgba(4,2,4,.9) 65%); }
 #endfx.draw { background: rgba(8,10,16,.82); }
 #endfx canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -296,6 +296,50 @@ body.phone.show-menu .phoneonly { display: block; min-height: 44px; } body.phone
 @keyframes endfade { from { opacity: 0; } to { opacity: 1; } }
 #endfx.calm *, #endfx.calm { animation: none !important; }
 #endfx.calm .scythe { transform: translate(-30%, -58%) rotate(28deg); opacity: .3; }
+
+/* deck, hand and scrap as small physical cards in the deck's colour */
+.scorebar .piles { display: flex; align-items: center; gap: 16px; color: var(--muted); }
+.pilegrp { display: inline-flex; align-items: center; gap: 6px; }
+.pilegrp small { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
+.pilegrp .pn { font: 700 1rem var(--display); color: var(--ink, inherit); }
+.piles .stack { position: relative; width: 24px; height: 29px; }
+.piles .stack .cb { position: absolute; left: 0; top: 4px; }
+.piles .stack .cb:nth-child(2) { left: 2px; top: 2px; } .piles .stack .cb:nth-child(3) { left: 4px; top: 0; }
+.piles .cb { display: inline-block; width: 18px; height: 25px; border-radius: 3px; box-sizing: border-box;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--k) 80%, #fff), var(--k) 45%, color-mix(in srgb, var(--k) 65%, #000));
+  border: 1.5px solid color-mix(in srgb, var(--k) 45%, #000); box-shadow: inset 0 0 0 2px rgba(255,255,255,.22), 0 1px 2px rgba(0,0,0,.5); }
+.piles .cb.up { background: linear-gradient(#f1ece2, #d9d2c4); border-color: #7d776c; border-top: 5px solid var(--k); box-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.piles .cb.none { background: none; border: 1.5px dashed var(--muted); box-shadow: none; }
+.piles .fan { display: inline-flex; padding: 0 2px; }
+.piles .fan .cb { margin-left: -10px; transform: rotate(var(--r)); transform-origin: 50% 130%; }
+.piles .fan .cb:first-child { margin-left: 0; }
+.piles .pilebtn { background: none; border: 1px solid transparent; border-radius: 8px; padding: 2px 6px; cursor: pointer; color: inherit; }
+.piles .pilebtn:hover, .piles .pilebtn:focus-visible { border-color: var(--line); }
+
+/* shield, made loud: a force-field dome of hexagons with a light sweep, a pulsing outer glow, a big shield over the art and a SHIELDED banner */
+.card.shielded { border-color: #5fb4ff; box-shadow: 0 0 0 3px #1e6bff, 0 0 22px 6px rgba(47,123,255,.85), 0 0 46px 10px rgba(47,123,255,.45); animation: shield-pulse 1.8s ease-in-out infinite; }
+.card.shielded::before { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; border-radius: inherit;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48'%3E%3Cpath d='M14 0 28 8v16L14 32 0 24V8zM14 32v16' fill='none' stroke='%237fc4ff' stroke-width='1.4' opacity='.75'/%3E%3C/svg%3E"),
+    linear-gradient(115deg, transparent 30%, rgba(160,215,255,.55) 45%, transparent 60%);
+  background-size: 28px 48px, 250% 100%; background-position: 0 0, 120% 0; mix-blend-mode: screen; opacity: .85; animation: shield-sweep 2.4s linear infinite; }
+.card.shielded::after { content: "SHIELDED"; position: absolute; z-index: 5; left: 50%; top: 42%; transform: translate(-50%, -50%); pointer-events: none;
+  padding: 34px 12px 6px; min-width: 96px; text-align: center; font: 900 .72rem/1 var(--display, sans-serif); letter-spacing: .16em; color: #fff; text-shadow: 0 0 6px #1e6bff, 0 1px 2px #000;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z' fill='%231e6bff' fill-opacity='.55' stroke='%23cfe7ff' stroke-width='1.3'/%3E%3C/svg%3E") 50% 0 / 34px 34px no-repeat; }
+.card.mini.shielded::after { font-size: .55rem; padding-top: 24px; background-size: 24px 24px; min-width: 70px; }
+.card.shielded.glow { box-shadow: 0 0 0 3px #1e6bff, 0 0 0 6px var(--gold), 0 0 22px 6px var(--gold); }
+.thumb.shielded { box-shadow: 0 0 0 2px #1e6bff, 0 0 14px 4px rgba(47,123,255,.8) !important; animation: shield-pulse 1.8s ease-in-out infinite; position: relative; }
+.thumb.shielded::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; mix-blend-mode: screen;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='34'%3E%3Cpath d='M10 0 20 6v11L10 23 0 17V6zM10 23v11' fill='none' stroke='%237fc4ff' stroke-width='1.2' opacity='.8'/%3E%3C/svg%3E") 0 0 / 20px 34px; }
+/* the phone thumbnail gets the big shield too */
+.thumb.shielded::before { content: ""; position: absolute; z-index: 3; left: 50%; top: 45%; width: 40px; height: 40px; transform: translate(-50%, -50%); pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z' fill='%231e6bff' fill-opacity='.6' stroke='%23cfe7ff' stroke-width='1.4'/%3E%3C/svg%3E") 50% 50% / contain no-repeat; filter: drop-shadow(0 0 6px #1e6bff); }
+@keyframes shield-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
+@keyframes shield-sweep { from { background-position: 0 0, 130% 0; } to { background-position: 0 0, -130% 0; } }
+@media (prefers-reduced-motion: reduce) { .card.shielded, .card.shielded::before, .thumb.shielded { animation: none; } }
+
+/* gear on a fighter: a pill you can click to see the gear card */
+.card .tags span.gearpill, .mk.gearpill { cursor: pointer; pointer-events: auto; background: #2c3a4a; color: #fff; border: 1px solid #8fb4d8; }
+.card .tags span.gearpill:hover, .card .tags span.gearpill:focus-visible, .mk.gearpill:hover { background: #3f5a78; outline: none; box-shadow: 0 0 0 2px #8fb4d8; }
 </style>
 <main>
   <header>
@@ -9311,7 +9355,7 @@ function botHtml(b, side, slot, list) {
       const back = list.find((a) => a.type === 'retreat' && a.to === slot); if (back) moves += btn('Swap in for the active bot', back, `Your active bot steps back and this one takes its place; costs ${v.retreat} ${unit()}, once a turn.`);
     }
   }
-  const tags = [b.arrived && side === m.turn ? '<span>just arrived</span>' : b.acted && side === m.turn ? '<span>done</span>' : '', b.tapped && v.block === 'choose' && side !== m.turn ? `<span class="rest"${tip(TIP.tapped())}>cannot block</span>` : '', b.shield ? `<span class="sh"${tip(TIP.shield())}>shield</span>` : '', b.boost ? `<span class="turn"${tip(`Until the end of this turn it hits ${b.boost} harder.`)}>+${b.boost} this turn</span>` : '', b.through ? `<span class="turn"${tip('Until the end of this turn its small attack may hit their commander past the bot opposite.')}>overpass</span>` : '', b.flank ? `<span class="turn"${tip('Flanking Run: this turn its small attack may hit their Thane past the fighter opposite, for half.')}>flanking</span>` : '', b.punch ? `<span class="turn"${tip(`Punch Through: when it destroys a fighter this turn, up to ${b.punch} of the damage left over carries to their Thane.`)}>punch ${b.punch}</span>` : '', b.cmdOnly && !b.acted ? `<span class="turn"${tip('Follow Through: it may hit their Thane through the lane it opened.')}>follow through</span>` : '', b.trample ? `<span class="turn"${tip('This turn, damage past what destroys the fighter in front carries to their Thane.')}>carries over</span>` : '', b.marked ? `<span class="turn"${tip(`Until the end of this turn it takes ${b.marked} more from every hit.`)}>marked +${b.marked}</span>` : '', b.gear ? `<span${tip(TIP.gear(b.gear))}>${esc(b.gear.name)}</span>` : ''].join('');
+  const tags = [b.arrived && side === m.turn ? '<span>just arrived</span>' : b.acted && side === m.turn ? '<span>done</span>' : '', b.tapped && v.block === 'choose' && side !== m.turn ? `<span class="rest"${tip(TIP.tapped())}>cannot block</span>` : '', b.shield ? `<span class="sh"${tip(TIP.shield())}>shield</span>` : '', b.boost ? `<span class="turn"${tip(`Until the end of this turn it hits ${b.boost} harder.`)}>+${b.boost} this turn</span>` : '', b.through ? `<span class="turn"${tip('Until the end of this turn its small attack may hit their commander past the bot opposite.')}>overpass</span>` : '', b.flank ? `<span class="turn"${tip('Flanking Run: this turn its small attack may hit their Thane past the fighter opposite, for half.')}>flanking</span>` : '', b.punch ? `<span class="turn"${tip(`Punch Through: when it destroys a fighter this turn, up to ${b.punch} of the damage left over carries to their Thane.`)}>punch ${b.punch}</span>` : '', b.cmdOnly && !b.acted ? `<span class="turn"${tip('Follow Through: it may hit their Thane through the lane it opened.')}>follow through</span>` : '', b.trample ? `<span class="turn"${tip('This turn, damage past what destroys the fighter in front carries to their Thane.')}>carries over</span>` : '', b.marked ? `<span class="turn"${tip(`Until the end of this turn it takes ${b.marked} more from every hit.`)}>marked +${b.marked}</span>` : '', b.gear ? `<span class="gearpill" data-gear="${b.card.uid}" role="button" tabindex="0"${tip(TIP.gear(b.gear) + ' Click to see the card.')}>${esc(b.gear.name)} ▸</span>` : ''].join('');
   const art = artOf(b), click = card ? () => act(card) : viaThane ? () => act(viaThane) : null;
   const abl = v.abilities && V.abilityText(b) ? `<small class="ab"${tip(`Ability of this bot: ${V.abilityText(b)}`)}>${esc(V.abilityText(b))}</small>` : '';
   const lines = noAttack(b) ? `<span${tip('A wall: it cannot attack. While it stands its lane is not open, so the bot opposite cannot hit your commander.')}>Cannot attack. Holds its lane.</span>` : !b.two ? `<span${tip(TIP.small(b))}>Attack ${V.hitOf(b, 'small')}</span>` : `<span${tip(TIP.small(b))}>Small: hit ${V.hitOf(b, 'small')}</span><br><span${tip(TIP.big(b))}>${esc(b.move.name)}: hit ${V.hitOf(b, 'big')} (${v.resource === 'attach' ? 'needs' : 'costs'} ${V.needOf(b, 'big')}${SOLO && v.resource === 'pool' ? ' mana' : ''})</span>`;
@@ -9340,7 +9384,11 @@ function scoreHtml(i) {
   const score = v.win === 'commander' ? '' : v.win === 'health' ? `<span class="stat hp" data-key="hp-${i}"${tip(TIP.health(i === ME ? 'Your' : "The opponent's"))}><b>${Math.max(0, p.health)}</b> health</span>`
     : `<span class="kills" data-key="hp-${i}"${tip(TIP.kills(i === ME ? 'You have' : 'The opponent has', p.kills))}><b>${Math.min(p.kills, v.target)}</b><em>/ ${v.target}</em> kills</span><span class="pips">${Array.from({ length: v.target }, (_, k) => `<i class="${k < p.kills ? 'on' : ''}"></i>`).join('')}</span>`;
   const mana = v.resource === 'pool' ? `<span class="stat mana"${tip(TIP.mana(p, i === ME))}><b>${p.mana}</b>/ ${p.manaMax} mana</span>` : '';
-  return `<b>${who}</b>${score}${mana}<span class="deck"><span${tip(TIP.deck(p.deck.length))}>deck ${p.deck.length}</span>${i === BOT ? ` · hand ${p.hand.length}` : ''} · <button class="pilebtn" ${on(() => { pile = pile === i ? null : i; render(); })}${tipBtn(`${i === ME ? 'Your' : "The opponent's"} scrap pile: every card played, discarded or destroyed. Click to look through it.`)}>scrap ${p.scrap.length}</button></span>`;
+  const col = (p.cmd && p.cmd.color) || 'neutral', cb = (cls = '') => `<i class="cb ${cls}"></i>`, nh = Math.min(p.hand.length, 8);
+  const deck = `<span class="pilegrp"${tip(TIP.deck(p.deck.length))}><span class="stack${p.deck.length ? '' : ' empty'}">${p.deck.length ? cb() + cb() + cb() : cb('none')}</span><span class="pn">${p.deck.length}</span><small>deck</small></span>`;
+  const hand = i === BOT ? `<span class="pilegrp"${tip(`The opponent holds ${p.hand.length} card${p.hand.length === 1 ? '' : 's'}.`)}><span class="fan">${Array.from({ length: nh }, (_, k) => `<i class="cb" style="--r:${((k - (nh - 1) / 2) * 7).toFixed(1)}deg"></i>`).join('')}</span><span class="pn">${p.hand.length}</span><small>hand</small></span>` : '';
+  const scrap = `<button class="pilebtn pilegrp" ${on(() => { pile = pile === i ? null : i; render(); })}${tipBtn(`${i === ME ? 'Your' : "The opponent's"} scrap pile: every card played, discarded or destroyed. Click to look through it.`)}><span class="stack up${p.scrap.length ? '' : ' empty'}">${p.scrap.length ? cb('up') + cb('up') : cb('none')}</span><span class="pn">${p.scrap.length}</span><small>scrap</small></button>`;
+  return `<b>${who}</b>${score}${mana}<span class="deck piles k-${col}">${deck}${hand}${scrap}</span>`;
 }
 /** A commander's box: name, deck, health as the big number, and its three lines. Mine are buttons; theirs shows what it did. */
 function cmdHtml(i, list, hit = []) {
@@ -9389,8 +9437,8 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pile !==
 
 // ---- the phone layout --------------------------------------------------------------------------------------------------
 /** The glyphs on a thumbnail: one letter each, with what it means on hover or long press. */
-const marks = (b) => [b.gear ? ['G', `Gear: ${b.gear.name}`] : null, b.shield ? ['S', 'Shielded: the next hit is stopped'] : null, b.stun ? ['Z', 'Cannot attack on its next turn'] : null, b.made ? ['M', 'Made by a commander: not a card'] : null, b.boost ? [`+${b.boost}`, 'Hits harder this turn'] : null, b.flank || b.cmdOnly && !b.acted ? ['»', 'May hit their Thane this turn'] : null, b.punch || b.trample ? ['↯', 'Damage left over after a kill carries to their Thane this turn'] : null, b.defender ? ['W', 'A wall: it cannot attack'] : null].filter(Boolean)
-  .map(([g, t]) => `<i class="mk"${tip(t)}>${g}</i>`).join('');
+const marks = (b) => [b.gear ? ['G', `Gear: ${b.gear.name}. Double-tap the fighter's card, or tap here, to see it.`, b.card.uid] : null, b.shield ? ['S', 'Shielded: the next hit is stopped'] : null, b.stun ? ['Z', 'Cannot attack on its next turn'] : null, b.made ? ['M', 'Made by a commander: not a card'] : null, b.boost ? [`+${b.boost}`, 'Hits harder this turn'] : null, b.flank || b.cmdOnly && !b.acted ? ['»', 'May hit their Thane this turn'] : null, b.punch || b.trample ? ['↯', 'Damage left over after a kill carries to their Thane this turn'] : null, b.defender ? ['W', 'A wall: it cannot attack'] : null].filter(Boolean)
+  .map(([g, t, gu]) => `<i class="mk${gu !== undefined ? ' gearpill' : ''}"${gu !== undefined ? ` data-gear="${gu}"` : ''}${tip(t)}>${g}</i>`).join('');
 /** A fighter as a thumbnail. A tap uses it as a target when it is one; otherwise it opens the full card. */
 function thumbHtml(b, side, slot, list) {
   const mine = side === ME, v = o();
@@ -9541,6 +9589,9 @@ async function step(a) {
     // damage that carries past the fighter it destroys (Punch Through, Ram, Momentum Rig, Breakthrough): a second jump, at the Thane
     if (me && a.at !== 'cmd') { const c = V.clone(m); V.apply(c, a, false); if (c.log.some((l) => /carries \d+ through|keeps going/.test(l.text)) && E(`cmd-${1 - i}`)) await Anim.lunge(me.card.uid, E(`cmd-${1 - i}`), 300, 0.6); }
   }
+  // an instant is shown before it lands: out of the hand, big in the middle, then into its target
+  if (a.type === 'play') { const c = m.players[m.actor].hand[a.hand]; if (c && (c.kind === 'instant' || c.kind === 'gear')) await showInstant(c, a, m.actor); }
+  if (m !== game) return;
   const usedCmd = a.type === 'cmd' ? m.actor : null;
   const snap = Anim.snapshot(), was = vitals();
   if (m !== game) return;
@@ -9551,7 +9602,8 @@ async function step(a) {
   if (usedCmd !== null && E(`cmd-${usedCmd}`)) jobs.push(Anim.pulse(E(`cmd-${usedCmd}`), 600));
   for (const [k, w] of was) {
     const x = now.get(k);
-    if (!x) { jobs.push(Anim.float(w.slot, 'destroyed', 'dmg', 1100), Anim.shake(w.slot)); continue; }
+    if (!x) { const home = m.players.some((p) => p.hand.some((c) => String(c.uid) === String(k)));   // Recall and the like: back to the hand, not destroyed
+      jobs.push(home ? Anim.float(w.slot, 'back to hand', 'gain', 1100) : Anim.float(w.slot, 'destroyed', 'dmg', 1100), home ? Anim.pulse(w.slot) : Anim.shake(w.slot)); continue; }
     const d = x.left - w.left;
     if (d) jobs.push(Anim.float(k, d > 0 ? `+${d}` : `−${-d}`, d > 0 && !/^hp/.test(k) ? 'gain' : 'dmg'), d < 0 ? Anim.shake(k) : Anim.pulse(k));
   }
@@ -9657,23 +9709,33 @@ function endFx() {
   el.querySelector('.look').onclick = () => el.remove();
   if (win && !calm) confetti(el.querySelector('canvas'));
 }
-function confetti(cv) {
-  const ctx = cv.getContext('2d'), W = cv.width = innerWidth * devicePixelRatio, H = cv.height = innerHeight * devicePixelRatio, k = devicePixelRatio;
-  const cols = ['#3fd8ff', '#ffd54a', '#ff5d73', '#7be38f', '#b07cff', '#ffffff'];
-  const P = Array.from({ length: 220 }, () => ({ x: W / 2 + (Math.random() - .5) * W * .3, y: H * .35, vx: (Math.random() - .5) * 16 * k, vy: (-Math.random() * 18 - 6) * k,
-    w: (6 + Math.random() * 6) * k, h: (8 + Math.random() * 10) * k, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[Math.floor(Math.random() * cols.length)] }));
-  const t0 = performance.now();
+function confetti(cv) {   // fireworks: rockets rise with trails and burst into glowing sparks that fall and fade
+  const ctx = cv.getContext('2d'), k = devicePixelRatio, W = cv.width = innerWidth * k, H = cv.height = innerHeight * k;
+  const cols = ['#ffd54a', '#fff3c4', '#ffffff', '#7fdcff', '#ffb347', '#ff7a6a'];
+  const rockets = [], sparks = [], t0 = performance.now();
+  const launch = (delay) => setTimeout(() => rockets.push({ x: W * (0.15 + Math.random() * 0.7), y: H, vx: (Math.random() - .5) * 2 * k, vy: -(H * 0.0105 + Math.random() * H * 0.004),
+    top: H * (0.18 + Math.random() * 0.25), c: cols[Math.floor(Math.random() * cols.length)] }), delay);
+  for (let n = 0; n < 8; n++) launch(n * 420 + Math.random() * 200);
+  const burst = (r) => { const n = 70 + Math.floor(Math.random() * 40), c2 = Math.random() < .5 ? r.c : cols[Math.floor(Math.random() * cols.length)];
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, v = (2.2 + Math.random() * 2.4) * k;
+      sparks.push({ x: r.x, y: r.y, px: r.x, py: r.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, fade: .010 + Math.random() * .008, c: i % 3 ? r.c : c2 }); } };
   (function f(t) {
     if (!cv.isConnected) return;
-    ctx.clearRect(0, 0, W, H);
-    for (const p of P) { p.vy += .45 * k; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2))); ctx.restore(); }
-    if (t - t0 < 5000) requestAnimationFrame(f); else ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(0, 0, W, H);   // trails fade
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = rockets.length - 1; i >= 0; i--) { const r = rockets[i]; r.x += r.vx; r.y += r.vy; r.vy *= .985;
+      ctx.fillStyle = r.c; ctx.beginPath(); ctx.arc(r.x, r.y, 2.2 * k, 0, 7); ctx.fill();
+      if (r.y <= r.top || r.vy > -1) { burst(r); rockets.splice(i, 1); } }
+    for (let i = sparks.length - 1; i >= 0; i--) { const p = sparks[i]; p.px = p.x; p.py = p.y; p.vx *= .975; p.vy = p.vy * .975 + .045 * k; p.x += p.vx; p.y += p.vy; p.life -= p.fade;
+      if (p.life <= 0) { sparks.splice(i, 1); continue; }
+      ctx.strokeStyle = p.c; ctx.globalAlpha = Math.min(1, p.life * 1.4); ctx.lineWidth = 1.8 * k; ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    if (t - t0 < 6500 || sparks.length || rockets.length) requestAnimationFrame(f); else ctx.clearRect(0, 0, W, H);
   })(t0);
 }
 
 /* for headless tests: read the match and redraw */
-window.thaneDebug = { get m() { return m; }, render: () => render() };
+window.thaneDebug = { get m() { return m; }, render: () => render(), act: (a) => act(a), options: () => V.options(m) };
 
 /* the teal eye (as on the Charge page): this fighter's attacks may hit any of their fighters, from its Scope gear */
 function scopeEye(b) {
@@ -9691,7 +9753,7 @@ function artCss(x, art) {
 }
 function thaneCss(c, pic) {
   const cut = LAYERS.cut[`thane-${c.id}`], sc = cut && sceneOf(c.color);
-  return cut && sc ? `background-image:url(${cut}),url(${sc});background-size:auto 96%,cover;background-position:85% 100%,50% 40%;background-repeat:no-repeat` : `background-image:url(${pic})`;
+  return cut && sc ? `background-image:url(${cut}),url(${sc});background-size:auto 150%,cover;background-position:88% 4%,50% 40%;background-repeat:no-repeat` : `background-image:url(${pic})`;   // zoomed portrait: head near the top, body filling the panel
 }
 
 /* ---- double-click / double-tap a card: the big card in your chosen frame (web/viewer.js), turn it by dragging ---- */
@@ -9731,6 +9793,49 @@ function cardUnder(el) {
   return null;
 }
 if (typeof CardViewer !== 'undefined') CardViewer.watch(document, cardUnder);
+
+/* ---- an instant on screen: from the hand to the middle (in the chosen frame), then into its target with a burst ---- */
+async function showInstant(c, a, who) {
+  const sp = Anim.cfg.speed || 0; if (!sp || matchMedia('(prefers-reduced-motion: reduce)').matches || AUTO) return;
+  const fc = frameCard(c); if (!fc || typeof cardHTML !== 'function') return;
+  let frame = 'showcase'; try { frame = localStorage.getItem('thane-frame') || frame; } catch (e) {}
+  const q = (sel) => document.querySelector(sel);
+  const src = who === ME ? (q(`[data-key="${c.uid}"]`) || q('#hand') || q('#p-hand')) : (q('#score-1 .fan') || q('#p-cmd-1') || q('#score-1'));
+  const t = a.target, tgt = !t ? null : t.slot === 'cmd' ? (q(`#cmd-${t.side}`) || q(`#p-cmd-${t.side}`))
+    : (() => { const b = m.players[t.side].bots[t.slot]; return (b && q(`[data-key="${b.card.uid}"]`)) || q(`#p-lanes-${t.side} .cell:nth-child(${t.slot + 1})`); })();
+  const W = 750, H = 1050, big = Math.min(innerHeight * 0.62 / H, innerWidth * 0.8 / W, 0.5);
+  const box = document.createElement('div'); box.className = 'fx instant-fly';
+  box.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${H}px;z-index:950;pointer-events:none;transform-origin:0 0;`;
+  box.innerHTML = cardHTML(frame, fc);
+  document.body.appendChild(box);
+  const r0 = src ? src.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight, width: 60, height: 84 };
+  const s0 = Math.max(0.05, r0.width / W), cx = (innerWidth - W * big) / 2, cy = (innerHeight - H * big) / 2;
+  const at = (x, y, s, r = 0) => `translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`;
+  const run = (frames, dur, easing) => box.animate(frames, { duration: dur / sp, easing, fill: 'forwards' }).finished.catch(() => {});
+  await run([{ transform: at(r0.left, r0.top, s0), opacity: .6 }, { transform: at(cx, cy, big), opacity: 1 }], 420, 'cubic-bezier(.2,.8,.2,1)');
+  await run([{ filter: 'brightness(1)' }, { filter: 'brightness(1.25) drop-shadow(0 0 30px rgba(255,255,255,.6))' }, { filter: 'brightness(1)' }], 650, 'ease-in-out');
+  const r1 = tgt ? tgt.getBoundingClientRect() : { left: innerWidth / 2 - 40, top: innerHeight / 2 - 56, width: 80, height: 112 };
+  const s1 = Math.max(0.04, r1.width * 0.6 / W), tx = r1.left + r1.width / 2 - (W * s1) / 2, ty = r1.top + r1.height / 2 - (H * s1) / 2;
+  await run([{ transform: at(cx, cy, big), opacity: 1 }, { transform: at(tx, ty, s1, who === ME ? 14 : -14), opacity: .9 }], 300, 'cubic-bezier(.6,0,.9,.4)');
+  box.remove();
+  // the hit: a ring of the card's colour bursts from the target, which shakes
+  const col = (window.COLORS[fc.color] || window.COLORS.neutral).g, ring = document.createElement('div');
+  const cx2 = r1.left + r1.width / 2, cy2 = r1.top + r1.height / 2;
+  ring.style.cssText = `position:fixed;left:${cx2}px;top:${cy2}px;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;z-index:951;pointer-events:none;border:4px solid ${col};box-shadow:0 0 24px 8px ${col}`;
+  document.body.appendChild(ring);
+  const burst = ring.animate([{ transform: 'scale(.3)', opacity: 1 }, { transform: `scale(${Math.max(6, r1.width / 14)})`, opacity: 0 }], { duration: 480 / sp, easing: 'ease-out' }).finished.catch(() => {});
+  if (tgt) Anim.shake(tgt);
+  await burst; ring.remove();
+}
+
+/* a click on a fighter's gear pill opens that gear card in the viewer (and does not also click the fighter) */
+function openGear(e) {
+  const g = e.target.closest && e.target.closest('[data-gear]'); if (!g) return;
+  e.stopPropagation(); e.preventDefault();
+  for (const p of m.players) { const b = p.bots.find((x) => x && x.card && String(x.card.uid) === g.dataset.gear); if (b && b.gear) { CardViewer.open(frameCard(b.gear)); return; } }
+}
+document.addEventListener('click', openGear, true);
+document.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-gear]')) openGear(e); }, true);
 
 })();
 </script>
