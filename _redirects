@@ -1,4 +1,4 @@
-/thane-test /thane/ 301
-/thane-test/ /thane/ 301
-/thane-test/* /thane/:splat 301
-/thane /thane/ 301
+/thane-test     https://thanetcg.com/play/ 301
+/thane-test/*   https://thanetcg.com/play/ 301
+/thane          https://thanetcg.com/play/ 301
+/thane/*        https://thanetcg.com/play/:splat 301
